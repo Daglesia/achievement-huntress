@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "engines": {
@@ -13,16 +14,21 @@
   },
   "dependencies": {
     "next": "^14.2.5",
+    "pg": "^8.12.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "pg": "^8.12.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "vitest": "^2.1.4",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "22.13.0",
+    "@types/pg": "8.12.0",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "jsdom": "^25.0.1",
-    "@testing-library/react": "^16.0.1",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/user-event": "^14.5.2"
+    "typescript": "5.6.3",
+    "vitest": "^2.1.4"
   }
 }

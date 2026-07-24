@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET, POST } from './route';
+import { defaultGrades } from '../../../lib/grades';
 
 const getAchievementGrade = vi.fn();
 const saveAchievementGrade = vi.fn();
@@ -10,7 +11,7 @@ vi.mock('../../../lib/db', () => ({
   saveAchievementGrade: (...args) => saveAchievementGrade(...args),
 }));
 
-function buildRequest(url, steamId, init) {
+function buildRequest(url: string, steamId?: string | null, init?: RequestInit) {
   const headers = steamId ? { cookie: `steamid=${steamId}` } : {};
   return new NextRequest(url, { ...init, headers });
 }
@@ -31,16 +32,28 @@ describe('GET /api/achievement-grades', () => {
     const req = buildRequest('http://localhost/api/achievement-grades?appid=440&apiname=WIN_THE_GAME');
     const res = await GET(req);
     const body = await res.json();
-    expect(body.grades).toEqual({ A: 'C', B: 'C', C: 'C', D: 'C', E: 'C' });
+    expect(body.grades).toEqual(defaultGrades());
     expect(getAchievementGrade).not.toHaveBeenCalled();
   });
 
   it('returns stored grades for the logged in user', async () => {
-    getAchievementGrade.mockResolvedValue({ A: 'A', B: 'B', C: 'C', D: 'D', E: 'E' });
+    getAchievementGrade.mockResolvedValue({
+      Luck: 'A',
+      Time: 'B',
+      Skill: 'C',
+      Enjoyment: 'D',
+      Consistency: 'E',
+    });
     const req = buildRequest('http://localhost/api/achievement-grades?appid=440&apiname=WIN_THE_GAME', '123');
     const res = await GET(req);
     const body = await res.json();
-    expect(body.grades).toEqual({ A: 'A', B: 'B', C: 'C', D: 'D', E: 'E' });
+    expect(body.grades).toEqual({
+      Luck: 'A',
+      Time: 'B',
+      Skill: 'C',
+      Enjoyment: 'D',
+      Consistency: 'E',
+    });
     expect(getAchievementGrade).toHaveBeenCalledWith('123', '440', 'WIN_THE_GAME');
   });
 
@@ -49,7 +62,7 @@ describe('GET /api/achievement-grades', () => {
     const req = buildRequest('http://localhost/api/achievement-grades?appid=440&apiname=WIN_THE_GAME', '123');
     const res = await GET(req);
     const body = await res.json();
-    expect(body.grades).toEqual({ A: 'C', B: 'C', C: 'C', D: 'C', E: 'C' });
+    expect(body.grades).toEqual(defaultGrades());
   });
 });
 
@@ -86,14 +99,14 @@ describe('POST /api/achievement-grades', () => {
         steamid: 'someone-else',
         appid: '440',
         apiname: 'WIN_THE_GAME',
-        grades: { A: 'A', B: 'not-a-grade' },
+        grades: { Luck: 'A', Time: 'not-a-grade' },
       }),
     });
     const res = await POST(req);
     const body = await res.json();
 
     expect(saveAchievementGrade).toHaveBeenCalledWith('123', '440', 'WIN_THE_GAME', body.grades);
-    expect(body.grades.A).toBe('A');
-    expect(body.grades.B).toBe('C');
+    expect(body.grades.Luck).toBe('A');
+    expect(body.grades.Time).toBe('C');
   });
 });

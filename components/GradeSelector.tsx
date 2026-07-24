@@ -1,9 +1,15 @@
+import type { Grade } from '../lib/grades';
 import { GRADES, GRADE_COLOR } from '../lib/grades';
 
 const LINE = '#3E5C57';
 const MUTED = '#8FA8A2';
 
-export default function GradeSelector({ value, onChange }) {
+type GradeSelectorProps = {
+  value: Grade;
+  onChange: (grade: Grade) => void;
+};
+
+export default function GradeSelector({ value, onChange }: GradeSelectorProps) {
   return (
     <div style={{ display: 'flex', gap: 6 }}>
       {GRADES.map((g) => {

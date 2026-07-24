@@ -4,7 +4,7 @@ import { getSchemaForGame, dbBackend } from '../../../lib/schemaCache';
 // GET /api/schema?appid=440
 // Useful for demonstrating the cache: call it twice with the same appid --
 // the first response has source:"steam", the second has source:"cache".
-export async function GET(request) {
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const appId = searchParams.get('appid');
 

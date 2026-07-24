@@ -14,20 +14,20 @@ describe('AchievementRadarModal', () => {
   });
 
   it('shows edit controls once loaded when logged in', async () => {
-    render(<AchievementRadarModal steamId="123" appid="440" achievement={achievement} onClose={() => {}} />);
+    render(<AchievementRadarModal steamId="123" appid={440} achievement={achievement} onClose={() => {}} />);
 
     await waitFor(() => expect(screen.getByText('Save')).toBeInTheDocument());
   });
 
   it('hides edit controls and shows a login prompt when logged out', async () => {
-    render(<AchievementRadarModal steamId={null} appid="440" achievement={achievement} onClose={() => {}} />);
+    render(<AchievementRadarModal steamId={null} appid={440} achievement={achievement} onClose={() => {}} />);
 
     await waitFor(() => expect(screen.getByText(/log in to edit/i)).toBeInTheDocument());
     expect(screen.queryByText('Save')).not.toBeInTheDocument();
   });
 
   it('fetches grades for the right game and achievement', async () => {
-    render(<AchievementRadarModal steamId="123" appid="440" achievement={achievement} onClose={() => {}} />);
+    render(<AchievementRadarModal steamId="123" appid={440} achievement={achievement} onClose={() => {}} />);
 
     await waitFor(() =>
       expect(global.fetch).toHaveBeenCalledWith('/api/achievement-grades?appid=440&apiname=WIN_THE_GAME')
@@ -35,7 +35,7 @@ describe('AchievementRadarModal', () => {
   });
 
   it('posts the edited grades when Save is clicked', async () => {
-    render(<AchievementRadarModal steamId="123" appid="440" achievement={achievement} onClose={() => {}} />);
+    render(<AchievementRadarModal steamId="123" appid={440} achievement={achievement} onClose={() => {}} />);
     await waitFor(() => screen.getByText('Save'));
 
     const unpressedEButtons = screen.getAllByRole('button', { name: 'E', pressed: false });
@@ -52,7 +52,7 @@ describe('AchievementRadarModal', () => {
 
   it('closes when the backdrop is clicked but not when the panel is clicked', async () => {
     const onClose = vi.fn();
-    render(<AchievementRadarModal steamId="123" appid="440" achievement={achievement} onClose={onClose} />);
+    render(<AchievementRadarModal steamId="123" appid={440} achievement={achievement} onClose={onClose} />);
     await waitFor(() => screen.getByText('Save'));
 
     await userEvent.click(screen.getByText('Save'));

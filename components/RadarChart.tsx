@@ -1,3 +1,4 @@
+import type { GradeField, Grade } from '../lib/grades';
 import { GRADES, GRADE_VALUE, GRADE_COLOR } from '../lib/grades';
 import { polarPoint, axisAngle, gradeRadius } from '../lib/radarLayout';
 
@@ -7,13 +8,23 @@ const MUTED = '#8FA8A2';
 const TEXT = '#F1EDE2';
 const ACCENT = '#E3A83B';
 
-export default function RadarChart({ data, size = 320 }) {
+type RadarDatum = {
+  field: GradeField;
+  grade: Grade;
+};
+
+type RadarChartProps = {
+  data: RadarDatum[];
+  size?: number;
+};
+
+export default function RadarChart({ data, size = 320 }: RadarChartProps) {
   const cx = size / 2;
   const cy = size / 2;
   const maxR = size * 0.325;
   const labelR = size * 0.4375;
   const n = data.length;
-  const angleFor = (i) => axisAngle(i, n);
+  const angleFor = (i: number) => axisAngle(i, n);
 
   const rings = [1, 2, 3, 4, 5].map((level) => {
     const r = (level / 5) * maxR;
@@ -23,8 +34,8 @@ export default function RadarChart({ data, size = 320 }) {
 
   const axisEnds = data.map((_, i) => polarPoint(cx, cy, maxR, angleFor(i)));
 
-  const dataPoints = data.map((d, i) =>
-    polarPoint(cx, cy, gradeRadius(d.grade, maxR, GRADE_VALUE), angleFor(i))
+  const dataPoints = data.map((d) =>
+    polarPoint(cx, cy, gradeRadius(d.grade, maxR, GRADE_VALUE), angleFor(data.indexOf(d)))
   );
   const dataPolygon = dataPoints.map((p) => p.join(',')).join(' ');
 

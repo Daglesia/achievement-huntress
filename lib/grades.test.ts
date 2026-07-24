@@ -27,27 +27,33 @@ describe('grades', () => {
   });
 
   it('keeps valid grades and replaces invalid ones with the default', () => {
-    const result = normalizeGrades({ A: 'A', B: 'Z', E: 'E' });
-    expect(result.A).toBe('A');
-    expect(result.B).toBe(DEFAULT_GRADE);
-    expect(result.E).toBe('E');
+    const result = normalizeGrades({ Luck: 'A', Time: 'Z', Consistency: 'E' });
+    expect(result.Luck).toBe('A');
+    expect(result.Time).toBe(DEFAULT_GRADE);
+    expect(result.Consistency).toBe('E');
     expect(Object.keys(result).sort()).toEqual([...FIELDS].sort());
   });
 
   it('treats missing or non-object input as all defaults', () => {
     expect(normalizeGrades(null)).toEqual(defaultGrades());
     expect(normalizeGrades(undefined)).toEqual(defaultGrades());
-    expect(normalizeGrades('nonsense')).toEqual(defaultGrades());
+    expect(normalizeGrades('nonsense' as unknown as null)).toEqual(defaultGrades());
   });
 
   it('converts a grades map into radar chart data in field order', () => {
-    const data = gradesToRadarData({ A: 'A', B: 'B', C: 'C', D: 'D', E: 'E' });
+    const data = gradesToRadarData({
+      Luck: 'A',
+      Time: 'B',
+      Skill: 'C',
+      Enjoyment: 'D',
+      Consistency: 'E',
+    });
     expect(data).toEqual([
-      { field: 'A', grade: 'A' },
-      { field: 'B', grade: 'B' },
-      { field: 'C', grade: 'C' },
-      { field: 'D', grade: 'D' },
-      { field: 'E', grade: 'E' },
+      { field: 'Luck', grade: 'A' },
+      { field: 'Time', grade: 'B' },
+      { field: 'Skill', grade: 'C' },
+      { field: 'Enjoyment', grade: 'D' },
+      { field: 'Consistency', grade: 'E' },
     ]);
   });
 });

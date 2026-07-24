@@ -3,20 +3,42 @@
 import { useEffect, useState } from 'react';
 import AchievementRadarModal from '../components/AchievementRadarModal';
 
-function getCookie(name) {
+type SteamGame = {
+  appid: number;
+  name: string;
+  img_icon_url?: string;
+  playtime_forever: number;
+};
+
+type SteamAchievement = {
+  apiname: string;
+  achieved: boolean;
+  displayName: string;
+  description?: string;
+  icon?: string;
+};
+
+type ApiGamesResponse = { games?: SteamGame[] };
+type ApiAchievementsResponse = {
+  achievements?: SteamAchievement[];
+  message?: string;
+  schemaSource?: 'cache' | 'steam' | null;
+};
+
+function getCookie(name: string): string | null {
   const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
   return match ? match[2] : null;
 }
 
 export default function Home() {
-  const [steamId, setSteamId] = useState(null);
-  const [games, setGames] = useState([]);
+  const [steamId, setSteamId] = useState<string | null>(null);
+  const [games, setGames] = useState<SteamGame[]>([]);
   const [loadingGames, setLoadingGames] = useState(false);
-  const [selectedGame, setSelectedGame] = useState(null);
-  const [achievements, setAchievements] = useState(null);
-  const [achMessage, setAchMessage] = useState(null);
-  const [schemaSource, setSchemaSource] = useState(null);
-  const [openAchievement, setOpenAchievement] = useState(null);
+  const [selectedGame, setSelectedGame] = useState<SteamGame | null>(null);
+  const [achievements, setAchievements] = useState<SteamAchievement[] | null>(null);
+  const [achMessage, setAchMessage] = useState<string | null>(null);
+  const [schemaSource, setSchemaSource] = useState<'cache' | 'steam' | null>(null);
+  const [openAchievement, setOpenAchievement] = useState<SteamAchievement | null>(null);
 
   useEffect(() => {
     setSteamId(getCookie('steamid'));
@@ -26,20 +48,18 @@ export default function Home() {
     if (!steamId) return;
     setLoadingGames(true);
     fetch(`/api/games?steamid=${steamId}`)
-      .then((r) => r.json())
+      .then((r) => r.json() as Promise<ApiGamesResponse>)
       .then((data) => setGames(data.games || []))
       .finally(() => setLoadingGames(false));
   }, [steamId]);
 
-  async function loadAchievements(game) {
+  async function loadAchievements(game: SteamGame) {
     setSelectedGame(game);
     setAchievements(null);
     setAchMessage(null);
     setSchemaSource(null);
-    const res = await fetch(
-      `/api/achievements?steamid=${steamId}&appid=${game.appid}`
-    );
-    const data = await res.json();
+    const res = await fetch(`/api/achievements?steamid=${steamId}&appid=${game.appid}`);
+    const data = (await res.json()) as ApiAchievementsResponse;
     if (data.message) setAchMessage(data.message);
     setAchievements(data.achievements || []);
     setSchemaSource(data.schemaSource || null);
@@ -188,7 +208,7 @@ export default function Home() {
         )}
       </div>
 
-      {openAchievement && (
+      {selectedGame && openAchievement && (
         <AchievementRadarModal
           steamId={steamId}
           appid={selectedGame.appid}

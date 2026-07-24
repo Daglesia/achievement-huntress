@@ -1,9 +1,23 @@
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import RadarChart from './RadarChart';
 import GradeSelector from './GradeSelector';
 import { FIELDS, defaultGrades, normalizeGrades, gradesToRadarData } from '../lib/grades';
+import type { Grade, GradeField, GradeMap } from '../lib/grades';
 
-const overlayStyle = {
+type Achievement = {
+  apiname: string;
+  displayName: string;
+};
+
+type AchievementRadarModalProps = {
+  steamId: string | null;
+  appid: number;
+  achievement: Achievement;
+  onClose: () => void;
+};
+
+const overlayStyle: CSSProperties = {
   position: 'fixed',
   inset: 0,
   background: 'rgba(0,0,0,0.5)',
@@ -13,7 +27,7 @@ const overlayStyle = {
   zIndex: 50,
 };
 
-const panelStyle = {
+const panelStyle: CSSProperties = {
   background: '#12201F',
   color: '#F1EDE2',
   padding: 24,
@@ -24,7 +38,7 @@ const panelStyle = {
   overflowY: 'auto',
 };
 
-const headerStyle = {
+const headerStyle: CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
@@ -32,7 +46,7 @@ const headerStyle = {
   gap: 12,
 };
 
-const closeButtonStyle = {
+const closeButtonStyle: CSSProperties = {
   background: 'none',
   border: 'none',
   color: '#F1EDE2',
@@ -41,7 +55,7 @@ const closeButtonStyle = {
   lineHeight: 1,
 };
 
-const saveButtonStyle = {
+const saveButtonStyle: CSSProperties = {
   marginTop: 8,
   padding: '8px 14px',
   borderRadius: 6,
@@ -52,8 +66,8 @@ const saveButtonStyle = {
   cursor: 'pointer',
 };
 
-export default function AchievementRadarModal({ steamId, appid, achievement, onClose }) {
-  const [grades, setGrades] = useState(defaultGrades());
+export default function AchievementRadarModal({ steamId, appid, achievement, onClose }: AchievementRadarModalProps) {
+  const [grades, setGrades] = useState<GradeMap>(defaultGrades());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -62,7 +76,7 @@ export default function AchievementRadarModal({ steamId, appid, achievement, onC
     let cancelled = false;
     setLoading(true);
     fetch(`/api/achievement-grades?appid=${appid}&apiname=${achievement.apiname}`)
-      .then((res) => res.json())
+      .then((res) => res.json() as Promise<{ grades?: GradeMap }>)
       .then((data) => {
         if (!cancelled) setGrades(normalizeGrades(data.grades));
       })
@@ -74,7 +88,7 @@ export default function AchievementRadarModal({ steamId, appid, achievement, onC
     };
   }, [appid, achievement.apiname]);
 
-  function updateGrade(field, grade) {
+  function updateGrade(field: GradeField, grade: Grade) {
     setSaved(false);
     setGrades((prev) => ({ ...prev, [field]: grade }));
   }

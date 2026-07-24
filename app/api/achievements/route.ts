@@ -1,7 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSchemaForGame } from '../../../lib/schemaCache';
 
-export async function GET(request) {
+type SteamPlayerAchievement = {
+  apiname: string;
+  achieved?: boolean;
+  unlocktime?: number;
+};
+
+type SchemaEntry = {
+  name: string;
+  displayName?: string;
+  description?: string;
+  icon?: string;
+  icongray?: string;
+};
+
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const steamId = searchParams.get('steamid');
   const appId = searchParams.get('appid');
@@ -19,7 +33,14 @@ export async function GET(request) {
     `?key=${key}&steamid=${steamId}&appid=${appId}`;
 
   const res = await fetch(url);
-  const data = await res.json().catch(() => ({}));
+  const data = (await res.json().catch(() => ({}))) as {
+    playerstats?: {
+      success?: boolean;
+      error?: string;
+      achievements?: SteamPlayerAchievement[];
+      gameName?: string;
+    };
+  };
 
   if (!res.ok || data?.playerstats?.success === false) {
     return NextResponse.json({
@@ -32,13 +53,10 @@ export async function GET(request) {
 
   const playerAchievements = data?.playerstats?.achievements || [];
 
-  // Schema gives us display name / description / icon for each achievement.
-  // getSchemaForGame only calls Steam the first time this appid is ever
-  // requested; after that it's served from the local DB cache.
   const { schema, gameName: schemaGameName, source } = await getSchemaForGame(appId);
-  const schemaByName = new Map(schema.map((s) => [s.name, s]));
+  const schemaByName = new Map<string, SchemaEntry>(schema.map((s: SchemaEntry) => [s.name, s]));
 
-  const merged = playerAchievements.map((a) => {
+  const merged = playerAchievements.map((a: SteamPlayerAchievement) => {
     const meta = schemaByName.get(a.apiname);
     return {
       apiname: a.apiname,
@@ -53,6 +71,6 @@ export async function GET(request) {
   return NextResponse.json({
     achievements: merged,
     gameName: data?.playerstats?.gameName || schemaGameName,
-    schemaSource: source, // 'cache' or 'steam' -- shows the caching in action
+    schemaSource: source,
   });
 }
