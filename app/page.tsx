@@ -25,6 +25,13 @@ type ApiAchievementsResponse = {
   schemaSource?: 'cache' | 'steam' | null;
 };
 
+export function sortAchievements(achievements: SteamAchievement[]) {
+  return [...achievements].sort((a, b) => {
+    if (a.achieved === b.achieved) return 0;
+    return a.achieved ? 1 : -1;
+  });
+}
+
 function getCookie(name: string): string | null {
   const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
   return match ? match[2] : null;
@@ -184,7 +191,7 @@ export default function Home() {
               achievements &&
               achievements.length > 0 && (
                 <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {achievements.map((a) => (
+                  {sortAchievements(achievements).map((a) => (
                     <li key={a.apiname} style={{ marginBottom: 8 }}>
                       <button
                         onClick={() => setOpenAchievement(a)}
