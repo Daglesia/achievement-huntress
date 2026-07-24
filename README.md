@@ -68,6 +68,38 @@ To switch to Postgres, set `DATABASE_URL` in `.env.local`; the table is
 created automatically on first use (`CREATE TABLE IF NOT EXISTS`), so no
 separate migration step is needed either way.
 
+## Achievement grades (radar chart)
+
+Clicking an achievement opens a popup with a 5-field (A–E) radar chart.
+Each field holds a letter grade from E (lowest) to A (highest).
+
+- `lib/grades.js` — the fixed fields/grades, and `normalizeGrades` /
+  `defaultGrades` helpers used by both the API route and the UI so an
+  invalid or missing grade always falls back to a sane default instead of
+  breaking the chart.
+- `app/api/achievement-grades/route.js` — `GET ?appid=&apiname=` returns the
+  saved grades (or defaults if none exist yet). `POST` saves grades for the
+  achievement identified by `appid`/`apiname` in the body. The user is
+  identified by the `steamid` cookie on the server side — not by anything
+  the client sends — so one user can't overwrite another's grades.
+- `components/AchievementRadarModal.jsx` — fetches the grades when opened;
+  shows `GradeSelector` controls and a Save button only when `steamId` is
+  set (i.e. the visitor is logged in), otherwise shows a read-only chart.
+
+Grades are stored per `(steamid, appid, apiname)`, so they're each user's
+own personal rating of that achievement, not a shared/global value.
+
+## Testing
+
+```
+npm test
+```
+
+Runs the Vitest suite: pure logic (`lib/grades.js`, `lib/radarLayout.js`),
+the achievement-grade database functions against a real local SQLite file,
+the `/api/achievement-grades` route handler (with the DB layer mocked), and
+the chart/selector/modal components with React Testing Library.
+
 ## Notes / gotchas
 
 - **Profile privacy**: a user's games/achievements only come back if their

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import AchievementRadarModal from '../components/AchievementRadarModal';
 
 function getCookie(name) {
   const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
@@ -15,6 +16,7 @@ export default function Home() {
   const [achievements, setAchievements] = useState(null);
   const [achMessage, setAchMessage] = useState(null);
   const [schemaSource, setSchemaSource] = useState(null);
+  const [openAchievement, setOpenAchievement] = useState(null);
 
   useEffect(() => {
     setSteamId(getCookie('steamid'));
@@ -151,20 +153,33 @@ export default function Home() {
             {achievements && achievements.length > 0 && (
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 {achievements.map((a) => (
-                  <li
-                    key={a.apiname}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
-                  >
-                    {a.icon && <img src={a.icon} alt="" width={32} height={32} />}
-                    <span>
-                      {a.achieved ? '✅' : '⬜️'} <strong>{a.displayName}</strong>
-                      {a.description && (
-                        <>
-                          <br />
-                          <small>{a.description}</small>
-                        </>
-                      )}
-                    </span>
+                  <li key={a.apiname} style={{ marginBottom: 8 }}>
+                    <button
+                      onClick={() => setOpenAchievement(a)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: 6,
+                        background: 'transparent',
+                        border: '1px solid #ddd',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {a.icon && <img src={a.icon} alt="" width={32} height={32} />}
+                      <span>
+                        {a.achieved ? '✅' : '⬜️'} <strong>{a.displayName}</strong>
+                        {a.description && (
+                          <>
+                            <br />
+                            <small>{a.description}</small>
+                          </>
+                        )}
+                      </span>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -172,6 +187,15 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {openAchievement && (
+        <AchievementRadarModal
+          steamId={steamId}
+          appid={selectedGame.appid}
+          achievement={openAchievement}
+          onClose={() => setOpenAchievement(null)}
+        />
+      )}
     </main>
   );
 }
