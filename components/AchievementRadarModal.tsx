@@ -8,6 +8,8 @@ import type { Grade, GradeField, GradeMap } from '../lib/grades';
 type Achievement = {
   apiname: string;
   displayName: string;
+  achieved?: boolean;
+  unlocktime?: number | null;
 };
 
 type AchievementRadarModalProps = {
@@ -96,7 +98,10 @@ export default function AchievementRadarModal({ steamId, appid, achievement, onC
     if (res.ok) setSaved(true);
   }
 
-  const canEdit = !!steamId;
+  const isLoggedIn = !!steamId;
+  const achievementUnlocked = achievement.achieved === true || (typeof achievement.unlocktime === 'number' && achievement.unlocktime > 0);
+  const canEdit = isLoggedIn && achievementUnlocked;
+  const lockedForEditing = isLoggedIn && !achievementUnlocked;
   const radarData = gradesToRadarData(grades);
 
   return (
@@ -116,17 +121,24 @@ export default function AchievementRadarModal({ steamId, appid, achievement, onC
             <RadarChart data={radarData} />
           </div>
 
-          {canEdit ? (
+          {isLoggedIn ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
               {FIELDS.map((field) => (
                 <div key={field} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>{field}</span>
-                  <GradeSelector value={grades[field]} onChange={(g) => updateGrade(field, g)} />
+                  <GradeSelector value={grades[field]} onChange={(g) => updateGrade(field, g)} disabled={!canEdit} />
                 </div>
               ))}
-              <button onClick={save} disabled={saving} style={saveButtonStyle}>
-                {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save'}
-              </button>
+              {canEdit && (
+                <button onClick={save} disabled={saving} style={saveButtonStyle}>
+                  {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save'}
+                </button>
+              )}
+              {lockedForEditing && (
+                <p style={{ color: '#8FA8A2', fontSize: 13 }}>
+                  This achievement is not unlocked yet, so its radar values are locked.
+                </p>
+              )}
             </div>
           ) : (
             <p style={{ color: '#8FA8A2', fontSize: 13 }}>Log in to edit these grades.</p>

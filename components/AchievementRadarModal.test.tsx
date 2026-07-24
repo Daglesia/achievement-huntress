@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AchievementRadarModal from './AchievementRadarModal';
 
-const achievement = { apiname: 'WIN_THE_GAME', displayName: 'Win the game' };
+const achievement = { apiname: 'WIN_THE_GAME', displayName: 'Win the game', achieved: true, unlocktime: 123456 };
 
 describe('AchievementRadarModal', () => {
   beforeEach(() => {
@@ -11,6 +11,23 @@ describe('AchievementRadarModal', () => {
       ok: true,
       json: async () => ({ grades: { A: 'A', B: 'B', C: 'C', D: 'D', E: 'E' } }),
     });
+  });
+
+  it('does not expose grade editing controls for locked achievements', async () => {
+    const lockedAchievement = { ...achievement, achieved: false, unlocktime: 0 };
+
+    render(
+      <AchievementRadarModal
+        steamId="123"
+        appid={440}
+        achievement={lockedAchievement}
+        onClose={() => {}}
+      />
+    );
+
+    await waitFor(() => expect(screen.getByText(/locked/i)).toBeInTheDocument());
+    expect(screen.queryByText('Save')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'A' })[0]).toBeDisabled();
   });
 
   it('shows edit controls once loaded when logged in', async () => {

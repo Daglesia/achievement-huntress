@@ -7,9 +7,10 @@ const MUTED = '#8FA8A2';
 type GradeSelectorProps = {
   value: Grade;
   onChange: (grade: Grade) => void;
+  disabled?: boolean;
 };
 
-export default function GradeSelector({ value, onChange }: GradeSelectorProps) {
+export default function GradeSelector({ value, onChange, disabled = false }: GradeSelectorProps) {
   return (
     <div style={{ display: 'flex', gap: 6 }}>
       {GRADES.map((g) => {
@@ -20,6 +21,7 @@ export default function GradeSelector({ value, onChange }: GradeSelectorProps) {
             key={g}
             type="button"
             aria-pressed={active}
+            disabled={disabled}
             onClick={() => onChange(g)}
             style={{
               width: 30,
@@ -31,7 +33,8 @@ export default function GradeSelector({ value, onChange }: GradeSelectorProps) {
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
               fontWeight: 700,
               fontSize: 13,
-              cursor: 'pointer',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+              opacity: disabled ? 0.55 : 1,
             }}
           >
             {g}
