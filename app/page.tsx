@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import AchievementRadarModal from '../components/AchievementRadarModal';
+import { getAchievementTags, normalizeGrades } from '../lib/grades';
+import type { GradeMap } from '../lib/grades';
 
 type SteamGame = {
   appid: number;
@@ -43,6 +45,7 @@ export default function Home() {
   const [loadingGames, setLoadingGames] = useState(false);
   const [selectedGame, setSelectedGame] = useState<SteamGame | null>(null);
   const [achievements, setAchievements] = useState<SteamAchievement[] | null>(null);
+  const [achievementTags, setAchievementTags] = useState<Record<string, string[]>>({});
   const [achMessage, setAchMessage] = useState<string | null>(null);
   const [schemaSource, setSchemaSource] = useState<'cache' | 'steam' | null>(null);
   const [openAchievement, setOpenAchievement] = useState<SteamAchievement | null>(null);
@@ -60,9 +63,50 @@ export default function Home() {
       .finally(() => setLoadingGames(false));
   }, [steamId]);
 
+  useEffect(() => {
+    if (!steamId || !selectedGame || !achievements || achievements.length === 0) {
+      setAchievementTags({});
+      return;
+    }
+
+    let cancelled = false;
+    setAchievementTags({});
+
+    (async () => {
+      const tagsByAchievement: Record<string, string[]> = {};
+      await Promise.all(
+        achievements.map(async (achievement) => {
+          if (cancelled) return;
+          try {
+            const res = await fetch(
+              `/api/achievement-grades?appid=${selectedGame.appid}&apiname=${achievement.apiname}`
+            );
+            if (!res.ok || cancelled) return;
+            const data = (await res.json()) as { grades?: GradeMap };
+            const tags = getAchievementTags(normalizeGrades(data.grades));
+            if (tags.length) {
+              tagsByAchievement[achievement.apiname] = tags;
+            }
+          } catch {
+            // ignore network failures and leave tags empty
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setAchievementTags(tagsByAchievement);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [steamId, selectedGame?.appid, achievements]);
+
   async function loadAchievements(game: SteamGame) {
     setSelectedGame(game);
     setAchievements(null);
+    setAchievementTags({});
     setAchMessage(null);
     setSchemaSource(null);
     const res = await fetch(`/api/achievements?steamid=${steamId}&appid=${game.appid}`);
@@ -211,6 +255,22 @@ export default function Home() {
                         {a.icon && <img src={a.icon} alt="" width={32} height={32} />}
                         <span>
                           {a.achieved ? '✅' : '⬜️'} <strong>{a.displayName}</strong>
+                      {achievementTags[a.apiname]?.map((tag) => (
+                        <span
+                          key={tag}
+                          style={{
+                            marginLeft: 8,
+                            padding: '2px 6px',
+                            background: '#E3A83B',
+                            color: '#12201F',
+                            borderRadius: 999,
+                            fontSize: 12,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {tag}
+                        </span>
+                      ))}
                           {a.description && (
                             <>
                               <br />

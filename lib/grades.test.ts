@@ -7,6 +7,7 @@ import {
   defaultGrades,
   normalizeGrades,
   gradesToRadarData,
+  getAchievementTags,
 } from './grades';
 
 describe('grades', () => {
@@ -55,5 +56,37 @@ describe('grades', () => {
       { field: 'Enjoyment', grade: 'D' },
       { field: 'Consistency', grade: 'E' },
     ]);
+  });
+
+  it('generates tags for known grade patterns', () => {
+    expect(
+      getAchievementTags({
+        Luck: 'C',
+        Time: 'A',
+        Skill: 'D',
+        Enjoyment: 'C',
+        Consistency: 'C',
+      })
+    ).toEqual(['Grindfest']);
+
+    expect(
+      getAchievementTags({
+        Luck: 'A',
+        Time: 'A',
+        Skill: 'D',
+        Enjoyment: 'C',
+        Consistency: 'C',
+      })
+    ).toEqual(['Grindfest', 'RNG Fiesta']);
+
+    expect(
+      getAchievementTags({
+        Luck: 'E',
+        Time: 'C',
+        Skill: 'C',
+        Enjoyment: 'B',
+        Consistency: 'B',
+      })
+    ).toEqual([]);
   });
 });

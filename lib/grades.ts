@@ -34,6 +34,37 @@ export function normalizeGrades(input: GradeInput | null | undefined): GradeMap 
   ) as GradeMap;
 }
 
+function isAtLeast(grade: Grade, threshold: Grade) {
+  return GRADE_VALUE[grade] >= GRADE_VALUE[threshold];
+}
+
+function isAtMost(grade: Grade, threshold: Grade) {
+  return GRADE_VALUE[grade] <= GRADE_VALUE[threshold];
+}
+
+function isHigh(grade: Grade) {
+  return isAtLeast(grade, 'B');
+}
+
+function isLow(grade: Grade) {
+  return isAtMost(grade, 'D');
+}
+
+const GRADE_TAGS = [
+  {
+    label: 'Grindfest',
+    matches: (grades: GradeMap) => isHigh(grades.Time) && isLow(grades.Skill),
+  },
+  {
+    label: 'RNG Fiesta',
+    matches: (grades: GradeMap) => isHigh(grades.Time) && isLow(grades.Skill) && isHigh(grades.Luck),
+  },
+];
+
+export function getAchievementTags(grades: GradeMap) {
+  return GRADE_TAGS.filter((tag) => tag.matches(grades)).map((tag) => tag.label);
+}
+
 export function gradesToRadarData(grades: GradeInput | null | undefined) {
   const normalized = normalizeGrades(grades);
   return FIELDS.map((field) => ({ field, grade: normalized[field] }));
