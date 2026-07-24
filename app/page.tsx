@@ -153,7 +153,9 @@ export default function Home() {
         {selectedGame && (
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h2 style={{ margin: 0 }}>{selectedGame.name} — Achievements</h2>
+              <h2 style={{ margin: 0 }}>
+                {openAchievement ? `${selectedGame.name} - ${openAchievement.displayName}` : `${selectedGame.name} - Achievements`}
+              </h2>
               {schemaSource && (
                 <span
                   title="Whether achievement names/icons came from the local DB cache or a fresh Steam API call"
@@ -170,52 +172,54 @@ export default function Home() {
               )}
             </div>
             {achMessage && <p>{achMessage}</p>}
-            {achievements && achievements.length > 0 && (
-              <ul style={{ listStyle: 'none', padding: 0 }}>
-                {achievements.map((a) => (
-                  <li key={a.apiname} style={{ marginBottom: 8 }}>
-                    <button
-                      onClick={() => setOpenAchievement(a)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: 6,
-                        background: 'transparent',
-                        border: '1px solid #ddd',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {a.icon && <img src={a.icon} alt="" width={32} height={32} />}
-                      <span>
-                        {a.achieved ? '✅' : '⬜️'} <strong>{a.displayName}</strong>
-                        {a.description && (
-                          <>
-                            <br />
-                            <small>{a.description}</small>
-                          </>
-                        )}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+
+            {openAchievement ? (
+              <AchievementRadarModal
+                steamId={steamId}
+                appid={selectedGame.appid}
+                achievement={openAchievement}
+                onClose={() => setOpenAchievement(null)}
+              />
+            ) : (
+              achievements &&
+              achievements.length > 0 && (
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                  {achievements.map((a) => (
+                    <li key={a.apiname} style={{ marginBottom: 8 }}>
+                      <button
+                        onClick={() => setOpenAchievement(a)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: 6,
+                          background: 'transparent',
+                          border: '1px solid #ddd',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {a.icon && <img src={a.icon} alt="" width={32} height={32} />}
+                        <span>
+                          {a.achieved ? '✅' : '⬜️'} <strong>{a.displayName}</strong>
+                          {a.description && (
+                            <>
+                              <br />
+                              <small>{a.description}</small>
+                            </>
+                          )}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )
             )}
           </div>
         )}
       </div>
-
-      {selectedGame && openAchievement && (
-        <AchievementRadarModal
-          steamId={steamId}
-          appid={selectedGame.appid}
-          achievement={openAchievement}
-          onClose={() => setOpenAchievement(null)}
-        />
-      )}
     </main>
   );
 }

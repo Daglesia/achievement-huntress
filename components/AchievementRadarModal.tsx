@@ -17,25 +17,16 @@ type AchievementRadarModalProps = {
   onClose: () => void;
 };
 
-const overlayStyle: CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(0,0,0,0.5)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  zIndex: 50,
-};
-
 const panelStyle: CSSProperties = {
   background: '#12201F',
   color: '#F1EDE2',
   padding: 24,
   borderRadius: 8,
-  width: 380,
-  maxWidth: '90vw',
+  width: '100%',
+  maxWidth: 420,
   maxHeight: '85vh',
   overflowY: 'auto',
+  boxSizing: 'border-box',
 };
 
 const headerStyle: CSSProperties = {
@@ -46,13 +37,14 @@ const headerStyle: CSSProperties = {
   gap: 12,
 };
 
-const closeButtonStyle: CSSProperties = {
+const backButtonStyle: CSSProperties = {
   background: 'none',
-  border: 'none',
+  border: '1px solid #E3A83B',
   color: '#F1EDE2',
-  fontSize: 22,
+  padding: '6px 10px',
+  borderRadius: 6,
   cursor: 'pointer',
-  lineHeight: 1,
+  fontWeight: 700,
 };
 
 const saveButtonStyle: CSSProperties = {
@@ -108,41 +100,39 @@ export default function AchievementRadarModal({ steamId, appid, achievement, onC
   const radarData = gradesToRadarData(grades);
 
   return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div style={panelStyle} onClick={(e) => e.stopPropagation()}>
-        <div style={headerStyle}>
-          <h2 style={{ margin: 0, fontSize: 18 }}>{achievement.displayName}</h2>
-          <button onClick={onClose} style={closeButtonStyle} aria-label="Close">
-            ×
-          </button>
-        </div>
-
-        {loading ? (
-          <p>Loading grades…</p>
-        ) : (
-          <>
-            <div style={{ maxWidth: 320, margin: '0 auto' }}>
-              <RadarChart data={radarData} />
-            </div>
-
-            {canEdit ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
-                {FIELDS.map((field) => (
-                  <div key={field} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>{field}</span>
-                    <GradeSelector value={grades[field]} onChange={(g) => updateGrade(field, g)} />
-                  </div>
-                ))}
-                <button onClick={save} disabled={saving} style={saveButtonStyle}>
-                  {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save'}
-                </button>
-              </div>
-            ) : (
-              <p style={{ color: '#8FA8A2', fontSize: 13 }}>Log in to edit these grades.</p>
-            )}
-          </>
-        )}
+    <div style={panelStyle}>
+      <div style={headerStyle}>
+        <button onClick={onClose} style={backButtonStyle} aria-label="Back">
+          ← Back
+        </button>
+        <h2 style={{ margin: 0, fontSize: 18 }}>{achievement.displayName}</h2>
       </div>
+
+      {loading ? (
+        <p>Loading grades…</p>
+      ) : (
+        <>
+          <div style={{ maxWidth: 320, margin: '0 auto' }}>
+            <RadarChart data={radarData} />
+          </div>
+
+          {canEdit ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+              {FIELDS.map((field) => (
+                <div key={field} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>{field}</span>
+                  <GradeSelector value={grades[field]} onChange={(g) => updateGrade(field, g)} />
+                </div>
+              ))}
+              <button onClick={save} disabled={saving} style={saveButtonStyle}>
+                {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save'}
+              </button>
+            </div>
+          ) : (
+            <p style={{ color: '#8FA8A2', fontSize: 13 }}>Log in to edit these grades.</p>
+          )}
+        </>
+      )}
     </div>
   );
 }

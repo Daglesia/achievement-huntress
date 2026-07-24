@@ -50,15 +50,12 @@ describe('AchievementRadarModal', () => {
     );
   });
 
-  it('closes when the backdrop is clicked but not when the panel is clicked', async () => {
+  it('shows a back control for the inline achievement detail view', async () => {
     const onClose = vi.fn();
     render(<AchievementRadarModal steamId="123" appid={440} achievement={achievement} onClose={onClose} />);
     await waitFor(() => screen.getByText('Save'));
 
-    await userEvent.click(screen.getByText('Save'));
-    expect(onClose).not.toHaveBeenCalled();
-
-    await userEvent.click(screen.getByLabelText('Close'));
-    expect(onClose).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Close')).not.toBeInTheDocument();
   });
 });
