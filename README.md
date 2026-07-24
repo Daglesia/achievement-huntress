@@ -35,6 +35,39 @@ Route Handlers (`app/api/.../route.js`) act as that backend here.
 - `app/page.js` is a client component that reads the cookie, lists games,
   and fetches achievements when a game is clicked
 
+## Schema caching (`GetSchemaForGame`)
+
+Achievement *display names, descriptions, and icons* come from a separate
+Steam endpoint, `ISteamUserStats/GetSchemaForGame`, which barely changes for
+a given game -- so it's a perfect candidate for caching instead of calling
+Steam on every request.
+
+- `lib/db.js` — a tiny DB abstraction. If `DATABASE_URL` is set, it uses
+  **Postgres** (via `pg`) against that existing database. If it's not set,
+  it automatically creates and uses a **local SQLite file** at
+  `./data/dev.db` using Node's own built-in `node:sqlite` module — no
+  native compilation, no extra dependency, nothing to install for local dev
+  (requires Node 22.13+ / 23.4+, where the flag requirement was dropped).
+- `lib/schemaCache.js` — `getSchemaForGame(appid)`: checks the DB first; on
+  a miss it calls Steam's `GetSchemaForGame`, stores the result, and returns
+  it. On a hit it returns straight from the DB and never touches the
+  network.
+- `app/api/achievements/route.js` — uses the cached schema to attach
+  `displayName` / `description` / `icon` to each of the player's
+  achievements, and returns `schemaSource: 'cache' | 'steam'` so you can see
+  which one happened.
+- `app/api/schema/route.js` — a standalone endpoint for testing this
+  directly: call `GET /api/schema?appid=440` twice — the first response
+  says `"source": "steam"`, the second says `"source": "cache"`.
+
+The `game_schemas` table is keyed by `appid`, so it's shared across all
+users — once one person loads a game's achievements, everyone benefits from
+the cache for that game.
+
+To switch to Postgres, set `DATABASE_URL` in `.env.local`; the table is
+created automatically on first use (`CREATE TABLE IF NOT EXISTS`), so no
+separate migration step is needed either way.
+
 ## Notes / gotchas
 
 - **Profile privacy**: a user's games/achievements only come back if their

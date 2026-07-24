@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getSchemaForGame } from '../../../lib/schemaCache';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -20,9 +21,6 @@ export async function GET(request) {
   const res = await fetch(url);
   const data = await res.json().catch(() => ({}));
 
-  // Steam returns a 4xx body with a "success: false" message when the game
-  // has no achievements or the profile/game is private -- surface that
-  // instead of throwing, since it's a very common case.
   if (!res.ok || data?.playerstats?.success === false) {
     return NextResponse.json({
       achievements: [],
@@ -32,8 +30,29 @@ export async function GET(request) {
     });
   }
 
+  const playerAchievements = data?.playerstats?.achievements || [];
+
+  // Schema gives us display name / description / icon for each achievement.
+  // getSchemaForGame only calls Steam the first time this appid is ever
+  // requested; after that it's served from the local DB cache.
+  const { schema, gameName: schemaGameName, source } = await getSchemaForGame(appId);
+  const schemaByName = new Map(schema.map((s) => [s.name, s]));
+
+  const merged = playerAchievements.map((a) => {
+    const meta = schemaByName.get(a.apiname);
+    return {
+      apiname: a.apiname,
+      achieved: !!a.achieved,
+      unlocktime: a.unlocktime,
+      displayName: meta?.displayName || a.apiname,
+      description: meta?.description || '',
+      icon: a.achieved ? meta?.icon : meta?.icongray,
+    };
+  });
+
   return NextResponse.json({
-    achievements: data?.playerstats?.achievements || [],
-    gameName: data?.playerstats?.gameName,
+    achievements: merged,
+    gameName: data?.playerstats?.gameName || schemaGameName,
+    schemaSource: source, // 'cache' or 'steam' -- shows the caching in action
   });
 }

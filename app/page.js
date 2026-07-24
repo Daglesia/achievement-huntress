@@ -14,6 +14,7 @@ export default function Home() {
   const [selectedGame, setSelectedGame] = useState(null);
   const [achievements, setAchievements] = useState(null);
   const [achMessage, setAchMessage] = useState(null);
+  const [schemaSource, setSchemaSource] = useState(null);
 
   useEffect(() => {
     setSteamId(getCookie('steamid'));
@@ -32,12 +33,14 @@ export default function Home() {
     setSelectedGame(game);
     setAchievements(null);
     setAchMessage(null);
+    setSchemaSource(null);
     const res = await fetch(
       `/api/achievements?steamid=${steamId}&appid=${game.appid}`
     );
     const data = await res.json();
     if (data.message) setAchMessage(data.message);
     setAchievements(data.achievements || []);
+    setSchemaSource(data.schemaSource || null);
   }
 
   function logout() {
@@ -127,13 +130,41 @@ export default function Home() {
 
         {selectedGame && (
           <div style={{ flex: 1 }}>
-            <h2>{selectedGame.name} — Achievements</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h2 style={{ margin: 0 }}>{selectedGame.name} — Achievements</h2>
+              {schemaSource && (
+                <span
+                  title="Whether achievement names/icons came from the local DB cache or a fresh Steam API call"
+                  style={{
+                    fontSize: 12,
+                    padding: '2px 8px',
+                    borderRadius: 12,
+                    background: schemaSource === 'cache' ? '#e6f4ea' : '#fff4e5',
+                    color: schemaSource === 'cache' ? '#1e7e34' : '#a05a00',
+                  }}
+                >
+                  schema: {schemaSource === 'cache' ? 'from cache' : 'fetched from Steam'}
+                </span>
+              )}
+            </div>
             {achMessage && <p>{achMessage}</p>}
             {achievements && achievements.length > 0 && (
-              <ul>
+              <ul style={{ listStyle: 'none', padding: 0 }}>
                 {achievements.map((a) => (
-                  <li key={a.apiname}>
-                    {a.achieved ? '✅' : '⬜️'} {a.apiname}
+                  <li
+                    key={a.apiname}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}
+                  >
+                    {a.icon && <img src={a.icon} alt="" width={32} height={32} />}
+                    <span>
+                      {a.achieved ? '✅' : '⬜️'} <strong>{a.displayName}</strong>
+                      {a.description && (
+                        <>
+                          <br />
+                          <small>{a.description}</small>
+                        </>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>
