@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sortAchievements } from './page';
+import { sortAchievements } from '../lib/sortAchievements';
 
 describe('sortAchievements', () => {
   it('puts locked achievements first while preserving the existing order for the rest', () => {

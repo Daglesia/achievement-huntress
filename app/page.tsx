@@ -27,12 +27,7 @@ type ApiAchievementsResponse = {
   schemaSource?: 'cache' | 'steam' | null;
 };
 
-export function sortAchievements(achievements: SteamAchievement[]) {
-  return [...achievements].sort((a, b) => {
-    if (a.achieved === b.achieved) return 0;
-    return a.achieved ? 1 : -1;
-  });
-}
+import { sortAchievements } from '../lib/sortAchievements';
 
 function getCookie(name: string): string | null {
   const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
