@@ -25,7 +25,7 @@ jobs:
       - name: Log in to registry
         env:
           TOKEN: ${{ secrets.PACKAGE_TOKEN }}
-          USERNAME: ${{ secrets.FORGEJO_USERNAME }}
+          USERNAME: ${{ secrets.USERNAME }}
         run: |
           mkdir -p ~/.docker
           printf '{"auths":{"git.daglesia.com":{"auth":"%s"}}}' \
