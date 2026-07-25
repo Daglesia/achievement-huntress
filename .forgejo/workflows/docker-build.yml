@@ -1,0 +1,42 @@
+name: Build Docker image
+
+on:
+  push:
+    branches:
+      - main
+      - release/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Docker container
+    runs-on: docker
+    env:
+      DOCKER_HOST: tcp://localhost:2375
+      IMAGE: git.daglesia.com/magdalena/achievement-huntress
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Docker CLI
+        run: apt-get update -qq && apt-get install -y -qq docker.io
+
+      - name: Log in to registry
+        env:
+          TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+          USERNAME: ${{ secrets.FORGEJO_USERNAME }}
+        run: |
+          mkdir -p ~/.docker
+          printf '{"auths":{"git.daglesia.com":{"auth":"%s"}}}' \
+            "$(printf '%s:%s' "$USERNAME" "$TOKEN" | base64 -w 0)" \
+            > ~/.docker/config.json
+
+      - name: Build Docker image
+        run: docker build -f Dockerfile -t "${IMAGE}:${IMAGE_TAG}" -t "${IMAGE}:latest" .
+
+      - name: Push Docker image
+        run: |
+          docker push "${IMAGE}:${IMAGE_TAG}"
+          docker push "${IMAGE}:latest"

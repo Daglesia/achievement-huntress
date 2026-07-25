@@ -64,41 +64,35 @@ The `game_schemas` table is keyed by `appid`, so it's shared across all
 users — once one person loads a game's achievements, everyone benefits from
 the cache for that game.
 
-To switch to Postgres, set `DATABASE_URL` in `.env.local`; the table is
-created automatically on first use (`CREATE TABLE IF NOT EXISTS`), so no
+To switch to Postgres locally, set `DATABASE_URL` in `.env.local`; the table
+is created automatically on first use (`CREATE TABLE IF NOT EXISTS`), so no
 separate migration step is needed either way.
 
-## Achievement grades (radar chart)
+## Deployment
 
-Clicking an achievement opens a popup with a 5-field (A–E) radar chart.
-Each field holds a letter grade from E (lowest) to A (highest).
+This app is deployed to the `daglesia.com` cluster via
+[domain-infra](https://github.com/Daglesia/domain-infra)
+(`charts/achievement-huntress`, `apps/generic/achievement-huntress.yaml`),
+using the same ArgoCD + Helm + SOPS pattern as the rest of that cluster's
+apps.
 
-- `lib/grades.js` — the fixed fields/grades, and `normalizeGrades` /
-  `defaultGrades` helpers used by both the API route and the UI so an
-  invalid or missing grade always falls back to a sane default instead of
-  breaking the chart.
-- `app/api/achievement-grades/route.js` — `GET ?appid=&apiname=` returns the
-  saved grades (or defaults if none exist yet). `POST` saves grades for the
-  achievement identified by `appid`/`apiname` in the body. The user is
-  identified by the `steamid` cookie on the server side — not by anything
-  the client sends — so one user can't overwrite another's grades.
-- `components/AchievementRadarModal.jsx` — fetches the grades when opened;
-  shows `GradeSelector` controls and a Save button only when `steamId` is
-  set (i.e. the visitor is logged in), otherwise shows a read-only chart.
-
-Grades are stored per `(steamid, appid, apiname)`, so they're each user's
-own personal rating of that achievement, not a shared/global value.
-
-## Testing
-
-```
-npm test
-```
-
-Runs the Vitest suite: pure logic (`lib/grades.js`, `lib/radarLayout.js`),
-the achievement-grade database functions against a real local SQLite file,
-the `/api/achievement-grades` route handler (with the DB layer mocked), and
-the chart/selector/modal components with React Testing Library.
+- **Container image**: `Dockerfile` builds a multi-stage, standalone Next.js
+  image (`output: 'standalone'` in `next.config.mjs`), pushed to
+  `git.daglesia.com/magdalena/achievement-huntress` by
+  `.forgejo/workflows/build-and-push.yml` on every push to `main`, tagged
+  with the commit SHA. The Helm chart's `web.image.tag` is bumped to match.
+- **Database**: production does **not** use the SQLite fallback described
+  above. The chart injects `DATABASE_URL` from a Kubernetes Secret pointing
+  at the cluster's single shared PostgreSQL instance
+  (`domain-infra/charts/cnpg/postgresql`, see
+  [ADR 26-06-15](https://github.com/Daglesia/domain-infra/blob/master/documents/adrs/26-06-15-multiple-postgresql-instances.md)),
+  with its own dedicated `achievement_huntress` database/role — the same
+  approach already used there for `forgejo`, `penpot`, and `wikijs`. No code
+  changes were needed for this: `lib/db.js` already switches to Postgres
+  automatically whenever `DATABASE_URL` is set.
+- **Secrets**: `STEAM_API_KEY` and `DATABASE_URL` are stored in
+  `charts/achievement-huntress/secrets.yaml` in domain-infra, encrypted with
+  SOPS/age, and decrypted in-cluster by ArgoCD.
 
 ## Notes / gotchas
 
