@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { verifySteamAssertion } from '../../../../../lib/steamAuth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000';

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { buildSteamLoginUrl } from '../../../../lib/steamAuth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
   const loginUrl = buildSteamLoginUrl(baseUrl);
