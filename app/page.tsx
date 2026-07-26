@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react';
 import AchievementRadarModal from '../components/AchievementRadarModal';
 import { getAchievementTags, normalizeGrades } from '../lib/grades';
 import type { GradeMap } from '../lib/grades';
+import {
+  filterAchievements,
+  getAvailableGrades,
+  type AchievementFilterState,
+  type AchievementGradesByApiname,
+} from '../lib/achievementFilters';
 
 type SteamGame = {
   appid: number;
@@ -41,9 +47,12 @@ export default function Home() {
   const [selectedGame, setSelectedGame] = useState<SteamGame | null>(null);
   const [achievements, setAchievements] = useState<SteamAchievement[] | null>(null);
   const [achievementTags, setAchievementTags] = useState<Record<string, string[]>>({});
+  const [achievementGradesByApiname, setAchievementGradesByApiname] = useState<AchievementGradesByApiname>({});
   const [achMessage, setAchMessage] = useState<string | null>(null);
   const [schemaSource, setSchemaSource] = useState<'cache' | 'steam' | null>(null);
   const [openAchievement, setOpenAchievement] = useState<SteamAchievement | null>(null);
+  const [filters, setFilters] = useState<AchievementFilterState>({ status: 'all', grade: 'all', search: '' });
+  const [gameSearch, setGameSearch] = useState('');
 
   useEffect(() => {
     setSteamId(getCookie('steamid'));
@@ -61,14 +70,17 @@ export default function Home() {
   useEffect(() => {
     if (!steamId || !selectedGame || !achievements || achievements.length === 0) {
       setAchievementTags({});
+      setAchievementGradesByApiname({});
       return;
     }
 
     let cancelled = false;
     setAchievementTags({});
+    setAchievementGradesByApiname({});
 
     (async () => {
       const tagsByAchievement: Record<string, string[]> = {};
+      const gradesByAchievement: AchievementGradesByApiname = {};
       await Promise.all(
         achievements.map(async (achievement) => {
           if (cancelled) return;
@@ -78,10 +90,12 @@ export default function Home() {
             );
             if (!res.ok || cancelled) return;
             const data = (await res.json()) as { grades?: GradeMap };
-            const tags = getAchievementTags(normalizeGrades(data.grades));
+            const normalizedGrades = normalizeGrades(data.grades);
+            const tags = getAchievementTags(normalizedGrades);
             if (tags.length) {
               tagsByAchievement[achievement.apiname] = tags;
             }
+            gradesByAchievement[achievement.apiname] = normalizedGrades;
           } catch {
             // ignore network failures and leave tags empty
           }
@@ -90,6 +104,7 @@ export default function Home() {
 
       if (!cancelled) {
         setAchievementTags(tagsByAchievement);
+        setAchievementGradesByApiname(gradesByAchievement);
       }
     })();
 
@@ -102,8 +117,10 @@ export default function Home() {
     setSelectedGame(game);
     setAchievements(null);
     setAchievementTags({});
+    setAchievementGradesByApiname({});
     setAchMessage(null);
     setSchemaSource(null);
+    setFilters({ status: 'all', grade: 'all', search: '' });
     const res = await fetch(`/api/achievements?steamid=${steamId}&appid=${game.appid}`);
     const data = (await res.json()) as ApiAchievementsResponse;
     if (data.message) setAchMessage(data.message);
@@ -118,6 +135,22 @@ export default function Home() {
     setSelectedGame(null);
     setAchievements(null);
   }
+
+  const availableGrades = getAvailableGrades(achievementGradesByApiname);
+  const filteredAchievements = achievements
+    ? filterAchievements(sortAchievements(achievements), {
+        ...filters,
+        achievementGradesByApiname,
+      })
+    : [];
+  const filteredGames = games
+    .slice()
+    .sort((a, b) => b.playtime_forever - a.playtime_forever)
+    .filter((game) => {
+      if (!gameSearch.trim()) return true;
+      const query = gameSearch.trim().toLowerCase();
+      return game.name.toLowerCase().includes(query);
+    });
 
   if (!steamId) {
     return (
@@ -158,10 +191,20 @@ export default function Home() {
       )}
 
       <div style={{ display: 'flex', gap: 24, marginTop: 16 }}>
-        <ul style={{ listStyle: 'none', padding: 0, minWidth: 280 }}>
-          {games
-            .sort((a, b) => b.playtime_forever - a.playtime_forever)
-            .map((g) => (
+        <div style={{ minWidth: 280 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+            <span>Search games</span>
+            <input
+              type="text"
+              value={gameSearch}
+              onChange={(event) => setGameSearch(event.target.value)}
+              placeholder="Search games"
+              style={{ padding: '6px 8px' }}
+            />
+          </label>
+
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {filteredGames.map((g) => (
               <li key={g.appid} style={{ marginBottom: 8 }}>
                 <button
                   onClick={() => loadAchievements(g)}
@@ -194,7 +237,8 @@ export default function Home() {
                 </button>
               </li>
             ))}
-        </ul>
+          </ul>
+        </div>
 
         {selectedGame && (
           <div style={{ flex: 1 }}>
@@ -229,9 +273,56 @@ export default function Home() {
             ) : (
               achievements &&
               achievements.length > 0 && (
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                  {sortAchievements(achievements).map((a) => (
-                    <li key={a.apiname} style={{ marginBottom: 8 }}>
+                <>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12, alignItems: 'end' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>Status</span>
+                      <select
+                        value={filters.status}
+                        onChange={(event) =>
+                          setFilters((prev) => ({ ...prev, status: event.target.value as AchievementFilterState['status'] }))
+                        }
+                      >
+                        <option value="all">All</option>
+                        <option value="complete">Complete</option>
+                        <option value="incomplete">Incomplete</option>
+                      </select>
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>Grade</span>
+                      <select
+                        value={filters.grade}
+                        onChange={(event) =>
+                          setFilters((prev) => ({ ...prev, grade: event.target.value as AchievementFilterState['grade'] }))
+                        }
+                      >
+                        <option value="all">All grades</option>
+                        {availableGrades.map((grade) => (
+                          <option key={grade} value={grade}>
+                            {grade}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span>Search</span>
+                      <input
+                        type="text"
+                        value={filters.search}
+                        onChange={(event) =>
+                          setFilters((prev) => ({ ...prev, search: event.target.value }))
+                        }
+                        placeholder="Search achievements"
+                        style={{ padding: '6px 8px', minWidth: 220 }}
+                      />
+                    </label>
+                  </div>
+
+                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                    {filteredAchievements.map((a) => (
+                      <li key={a.apiname} style={{ marginBottom: 8 }}>
                       <button
                         onClick={() => setOpenAchievement(a)}
                         style={{
@@ -276,7 +367,8 @@ export default function Home() {
                       </button>
                     </li>
                   ))}
-                </ul>
+                  </ul>
+                </>
               )
             )}
           </div>
