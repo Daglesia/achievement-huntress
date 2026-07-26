@@ -10,7 +10,7 @@ export type AchievementFilterState = {
 
 export type AchievementGradesByApiname = Record<string, GradeMap>;
 
-export function filterAchievements<T extends { apiname: string; achieved: boolean }>(
+export function filterAchievements<T extends { apiname: string; achieved: boolean; displayName?: string }>(
   achievements: T[],
   filters: AchievementFilterState & { achievementGradesByApiname: AchievementGradesByApiname }
 ): T[] {
