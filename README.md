@@ -108,7 +108,7 @@ apps.
   `httpOnly` so the demo page can read it client-side. For a real app, make
   it `httpOnly` and add an authenticated `/api/me` route instead, so
   JavaScript in the page never sees/needs the raw id.
-- **Realm/return_to**: `NEXT_PUBLIC_BASE_URL` must exactly match the domain
+- **Realm/return_to**: `BASE_URL` must exactly match the domain
   you deploy to (Steam checks this). Update it for production and use HTTPS.
 - Rate limits: the Steam Web API is rate-limited; if you loop over many
   games fetching achievements, add delays/batching.
