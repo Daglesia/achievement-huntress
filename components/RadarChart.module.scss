@@ -1,0 +1,63 @@
+.radar {
+  overflow: visible;
+  display: block;
+}
+
+.ring {
+  fill: none;
+  stroke: #3E5C57;
+  opacity: 0.45;
+  stroke-width: 0.8;
+}
+
+.ringPrimary {
+  opacity: 0.9;
+  stroke-width: 1.4;
+}
+
+.axis {
+  stroke: #3E5C57;
+  stroke-width: 0.8;
+  opacity: 0.5;
+}
+
+.scaleTick {
+  text-anchor: end;
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  fill: #8FA8A2;
+}
+
+.dataGlow {
+  fill: url(#radarGlow);
+  stroke: none;
+}
+
+.dataMain {
+  fill: #E3A83B;
+  fill-opacity: 0.28;
+  stroke: #E3A83B;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.dataPoint {
+  stroke: #12201F;
+  stroke-width: 1.5;
+}
+
+.gradeLabel {
+  text-anchor: middle;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.fieldLabel {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  fill: #F1EDE2;
+}

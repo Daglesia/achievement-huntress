@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import styles from './page.module.scss';
 import AchievementRadarModal from '../components/AchievementRadarModal';
 import { getAchievementTags, normalizeGrades } from '../lib/grades';
 import type { GradeMap } from '../lib/grades';
@@ -154,20 +155,10 @@ export default function Home() {
 
   if (!steamId) {
     return (
-      <main>
-        <h1>Steam Login Demo</h1>
-        <p>Sign in with your Steam account to see your games and achievements.</p>
-        <a
-          href="/api/auth/steam"
-          style={{
-            display: 'inline-block',
-            padding: '10px 18px',
-            background: '#171a21',
-            color: '#fff',
-            borderRadius: 4,
-            textDecoration: 'none',
-          }}
-        >
+      <main className={styles.page}>
+        <h1 className={styles.page__title}>Steam Login Demo</h1>
+        <p className={styles.page__subtitle}>Sign in with your Steam account to see your games and achievements.</p>
+        <a href="/api/auth/steam" className={styles.page__authButton}>
           Login with Steam
         </a>
       </main>
@@ -175,51 +166,40 @@ export default function Home() {
   }
 
   return (
-    <main>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Your Steam Library</h1>
-        <button onClick={logout}>Log out</button>
+    <main className={styles.page}>
+      <div className={styles.page__header}>
+        <h1 className={styles.page__title}>Your Steam Library</h1>
+        <button className={styles.page__logoutButton} onClick={logout}>Log out</button>
       </div>
-      <p>SteamID64: {steamId}</p>
+      <p className={styles.page__subtitle}>SteamID64: {steamId}</p>
 
-      {loadingGames && <p>Loading games…</p>}
+      {loadingGames && <p className={styles.page__emptyState}>Loading games…</p>}
       {!loadingGames && games.length === 0 && (
-        <p>
+        <p className={styles.page__emptyState}>
           No games found. Your Steam profile's &quot;Game details&quot; privacy
           setting may need to be set to Public.
         </p>
       )}
 
-      <div style={{ display: 'flex', gap: 24, marginTop: 16 }}>
+      <div className={styles.page__content}>
         <div style={{ minWidth: 280 }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
-            <span>Search games</span>
+          <label className={styles.page__searchField}>
+            <span className={styles.page__searchLabel}>Search games</span>
             <input
               type="text"
               value={gameSearch}
               onChange={(event) => setGameSearch(event.target.value)}
               placeholder="Search games"
-              style={{ padding: '6px 8px' }}
+              className={styles.page__input}
             />
           </label>
 
-          <ul style={{ listStyle: 'none', padding: 0 }}>
+          <ul className={styles.page__games}>
             {filteredGames.map((g) => (
-              <li key={g.appid} style={{ marginBottom: 8 }}>
-                <button
+              <li key={g.appid} className={styles.page__gameItem}>
+                <div
                   onClick={() => loadAchievements(g)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: 6,
-                    background: selectedGame?.appid === g.appid ? '#eee' : 'transparent',
-                    border: '1px solid #ddd',
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                  }}
+                  className={`${styles.page__gameButton} ${selectedGame?.appid === g.appid ? styles['page__gameButton--active'] : ''}`}
                 >
                   {g.img_icon_url && (
                     <img
@@ -227,41 +207,35 @@ export default function Home() {
                       alt=""
                       width={32}
                       height={32}
+                      className={styles.page__gameImage}
                     />
                   )}
-                  <span>
-                    {g.name}
-                    <br />
-                    <small>{Math.round(g.playtime_forever / 60)} hrs played</small>
+                  <span className={styles.page__gameLabel}>
+                    <span className={styles.page__gameName}>{g.name}</span>
+                    <small className={styles.page__gameMeta}>{Math.round(g.playtime_forever / 60)} hours played</small>
                   </span>
-                </button>
+                </div>
               </li>
             ))}
           </ul>
         </div>
 
         {selectedGame && (
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h2 style={{ margin: 0 }}>
+          <div className={styles.page__details}>
+            <div className={styles.page__detailsHeader}>
+              <h2 className={styles.page__detailsTitle}>
                 {openAchievement ? `${selectedGame.name} - ${openAchievement.displayName}` : `${selectedGame.name} - Achievements`}
               </h2>
               {schemaSource && (
                 <span
                   title="Whether achievement names/icons came from the local DB cache or a fresh Steam API call"
-                  style={{
-                    fontSize: 12,
-                    padding: '2px 8px',
-                    borderRadius: 12,
-                    background: schemaSource === 'cache' ? '#e6f4ea' : '#fff4e5',
-                    color: schemaSource === 'cache' ? '#1e7e34' : '#a05a00',
-                  }}
+                  className={`${styles.page__schemaBadge} ${schemaSource === 'steam' ? styles['page__schemaBadge--steam'] : ''}`}
                 >
                   schema: {schemaSource === 'cache' ? 'from cache' : 'fetched from Steam'}
                 </span>
               )}
             </div>
-            {achMessage && <p>{achMessage}</p>}
+            {achMessage && <p className={styles.page__message}>{achMessage}</p>}
 
             {openAchievement ? (
               <AchievementRadarModal
@@ -274,14 +248,15 @@ export default function Home() {
               achievements &&
               achievements.length > 0 && (
                 <>
-                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12, alignItems: 'end' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>Status</span>
+                  <div className={styles.page__filters}>
+                    <label className={styles.page__filterField}>
+                      <span className={styles.page__filterLabel}>Status</span>
                       <select
                         value={filters.status}
                         onChange={(event) =>
                           setFilters((prev) => ({ ...prev, status: event.target.value as AchievementFilterState['status'] }))
                         }
+                        className={styles.page__select}
                       >
                         <option value="all">All</option>
                         <option value="complete">Complete</option>
@@ -289,13 +264,14 @@ export default function Home() {
                       </select>
                     </label>
 
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>Grade</span>
+                    <label className={styles.page__filterField}>
+                      <span className={styles.page__filterLabel}>Grade</span>
                       <select
                         value={filters.grade}
                         onChange={(event) =>
                           setFilters((prev) => ({ ...prev, grade: event.target.value as AchievementFilterState['grade'] }))
                         }
+                        className={styles.page__select}
                       >
                         <option value="all">All grades</option>
                         {availableGrades.map((grade) => (
@@ -306,8 +282,8 @@ export default function Home() {
                       </select>
                     </label>
 
-                    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <span>Search</span>
+                    <label className={styles.page__searchField}>
+                      <span className={styles.page__searchLabel}>Search</span>
                       <input
                         type="text"
                         value={filters.search}
@@ -315,53 +291,34 @@ export default function Home() {
                           setFilters((prev) => ({ ...prev, search: event.target.value }))
                         }
                         placeholder="Search achievements"
-                        style={{ padding: '6px 8px', minWidth: 220 }}
+                        className={styles.page__input}
                       />
                     </label>
                   </div>
 
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                  <ul className={styles.page__achievements}>
                     {filteredAchievements.map((a) => (
-                      <li key={a.apiname} style={{ marginBottom: 8 }}>
+                      <li key={a.apiname} className={styles.page__achievementItem}>
                       <button
                         onClick={() => setOpenAchievement(a)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 10,
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: 6,
-                          background: 'transparent',
-                          border: '1px solid #ddd',
-                          borderRadius: 4,
-                          cursor: 'pointer',
-                        }}
+                        className={styles.page__achievementButton}
                       >
                         {a.icon && <img src={a.icon} alt="" width={32} height={32} />}
-                        <span>
-                          {a.achieved ? '✅' : '⬜️'} <strong>{a.displayName}</strong>
-                      {achievementTags[a.apiname]?.map((tag) => (
-                        <span
-                          key={tag}
-                          style={{
-                            marginLeft: 8,
-                            padding: '2px 6px',
-                            background: '#E3A83B',
-                            color: '#12201F',
-                            borderRadius: 999,
-                            fontSize: 12,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                        <span className={styles.page__achievementContent}>
+                          <span className={styles.page__achievementTitle}>
+                            {a.achieved ? '✅' : '⬜️'} {a.displayName}
+                          </span>
+                          {achievementTags[a.apiname]?.length ? (
+                            <span className={styles.page__achievementTags}>
+                              {achievementTags[a.apiname].map((tag) => (
+                                <span key={tag} className={styles.page__achievementTag}>
+                                  {tag}
+                                </span>
+                              ))}
+                            </span>
+                          ) : null}
                           {a.description && (
-                            <>
-                              <br />
-                              <small>{a.description}</small>
-                            </>
+                            <small className={styles.page__achievementMeta}>{a.description}</small>
                           )}
                         </span>
                       </button>

@@ -1,0 +1,219 @@
+$border-color: #ddd;
+$accent: #171a21;
+$accent-soft: #eee;
+$chip-bg: #e3a83b;
+$chip-text: #12201f;
+$muted: #8fa8a2;
+
+.page {
+  padding: 24px;
+  color: #fff;
+  background: #242424;
+}
+
+.page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.page__title {
+  margin: 0;
+}
+
+.page__subtitle {
+  margin: 0;
+}
+
+.page__logoutButton,
+.page__gameButton,
+.page__achievementButton,
+.page__authButton {
+  font: inherit;
+}
+
+.page__logoutButton,
+.page__authButton {
+  padding: 10px 18px;
+  background: $accent;
+  color: #fff;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page__content {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.page__games {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-width: 280px;
+}
+
+.page__gameButton {
+  display: flex;
+  align-items: center;
+  width: 320px;
+  height: 47px;
+  text-align: left;
+  background: #242424;
+  color: rgb(131, 222, 240);
+  border-top: 1px solid rgb(131, 222, 240);
+  border-radius: 1px;
+  cursor: pointer;
+
+  &:hover {
+    background: #2e2e2e;
+  }
+}
+
+.page__gameButton--active {
+  background: #505050;
+}
+
+.page__gameImage {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 4px;
+  margin-right: 4px;
+}
+
+.page__gameLabel {
+  display: flex;
+  flex-direction: column;
+}
+
+.page__gameName {
+  font-weight: 600;
+}
+
+.page__gameMeta {
+  font-size: 12px;
+  color: $muted;
+}
+
+.page__details {
+  flex: 1;
+}
+
+.page__detailsHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page__detailsTitle {
+  margin: 0;
+}
+
+.page__schemaBadge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #e6f4ea;
+  color: #1e7e34;
+}
+
+.page__schemaBadge--steam {
+  background: #fff4e5;
+  color: #a05a00;
+}
+
+.page__message {
+  margin: 8px 0 12px;
+}
+
+.page__filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  align-items: flex-end;
+}
+
+.page__filterField,
+.page__searchField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page__filterLabel,
+.page__searchLabel {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.page__select,
+.page__input {
+  padding: 6px 8px;
+  min-width: 140px;
+}
+
+.page__input {
+  min-width: 220px;
+}
+
+.page__achievements {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.page__achievementItem {
+  margin-bottom: 8px;
+}
+
+.page__achievementButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 6px;
+  background: transparent;
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page__achievementContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.page__achievementTitle {
+  font-weight: 600;
+}
+
+.page__achievementMeta {
+  color: $muted;
+  font-size: 13px;
+}
+
+.page__achievementTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.page__achievementTag {
+  padding: 2px 6px;
+  background: $chip-bg;
+  color: $chip-text;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.page__emptyState {
+  color: $muted;
+}
