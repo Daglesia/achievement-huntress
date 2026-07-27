@@ -11,6 +11,7 @@ import {
   type AchievementFilterState,
   type AchievementGradesByApiname,
 } from '../lib/achievementFilters';
+import { signInWithAuthentik } from '../lib/actions';
 
 type SteamGame = {
   appid: number;
@@ -161,6 +162,23 @@ export default function Home() {
         <a href="/api/auth/steam" className={styles.page__authButton}>
           Login with Steam
         </a>
+
+        <form action={signInWithAuthentik}>
+          <button
+            type="submit"
+            style={{
+              display: 'inline-block',
+              padding: '10px 18px',
+              background: '#fd4b2d',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 4,
+              cursor: 'pointer',
+            }}
+          >
+            Login with Authentik
+          </button>
+        </form>
       </main>
     );
   }
