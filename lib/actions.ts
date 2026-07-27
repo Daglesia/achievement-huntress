@@ -1,7 +1,7 @@
 'use server';
 
-import { signIn } from './auth';
+import { redirect } from 'next/navigation';
 
 export async function signInWithAuthentik() {
-  await signIn('authentik');
+  redirect('/api/auth/signin/authentik');
 }

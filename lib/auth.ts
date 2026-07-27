@@ -2,12 +2,14 @@ import NextAuth from 'next-auth';
 import Authentik from 'next-auth/providers/authentik';
 import { parseAchhuntRoles } from './roles';
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const authentikIssuer = process.env.AUTH_AUTHENTIK_ISSUER?.replace(/\/+$/, '');
+
+const auth = NextAuth({
   providers: [
     Authentik({
       clientId: process.env.AUTH_AUTHENTIK_ID,
       clientSecret: process.env.AUTH_AUTHENTIK_SECRET,
-      issuer: process.env.AUTH_AUTHENTIK_ISSUER,
+      issuer: authentikIssuer,
       authorization: {
         params: {
           scope: 'openid email profile available_services',
@@ -37,3 +39,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 });
+
+export default auth;
