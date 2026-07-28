@@ -13,6 +13,7 @@
     "node": ">=22.13.0"
   },
   "dependencies": {
+    "@daglesia/daglesias-library-of-components": "link:@daglesia/daglesias-library-of-components",
     "next": "^14.2.5",
     "next-auth": "^4.24.15",
     "pg": "^8.12.0",

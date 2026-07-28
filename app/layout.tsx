@@ -1,3 +1,4 @@
+import '@daglesia/daglesias-library-of-components/dist/daglesias-library-of-components.css';
 import type { ReactNode } from 'react';
 
 export const metadata = {

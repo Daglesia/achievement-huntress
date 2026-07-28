@@ -5,6 +5,7 @@
     "": {
       "name": "steam-nextjs",
       "dependencies": {
+        "@daglesia/daglesias-library-of-components": "link:@daglesia/daglesias-library-of-components",
         "next": "^14.2.5",
         "next-auth": "^4.24.15",
         "pg": "^8.12.0",
@@ -81,6 +82,8 @@
     "@csstools/css-parser-algorithms": ["@csstools/css-parser-algorithms@3.0.5", "", { "peerDependencies": { "@csstools/css-tokenizer": "^3.0.4" } }, "sha512-DaDeUkXZKjdGhgYaHNJTV9pV7Y9B3b644jCLs9Upc3VeNGg6LWARAT6O+Q+/COo+2gg/bM5rhpMAtf70WqfBdQ=="],
 
     "@csstools/css-tokenizer": ["@csstools/css-tokenizer@3.0.4", "", {}, "sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw=="],
+
+    "@daglesia/daglesias-library-of-components": ["@daglesia/daglesias-library-of-components@link:@daglesia/daglesias-library-of-components", {}],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.21.5", "", { "os": "aix", "cpu": "ppc64" }, "sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ=="],
 

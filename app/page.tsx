@@ -141,9 +141,9 @@ export default function Home() {
   const availableGrades = getAvailableGrades(achievementGradesByApiname);
   const filteredAchievements = achievements
     ? filterAchievements(sortAchievements(achievements), {
-        ...filters,
-        achievementGradesByApiname,
-      })
+      ...filters,
+      achievementGradesByApiname,
+    })
     : [];
   const filteredGames = games
     .slice()
@@ -201,37 +201,35 @@ export default function Home() {
 
       <div className={styles.page__content}>
         <div style={{ minWidth: 280 }}>
-          <label className={styles.page__searchField}>
-            <span className={styles.page__searchLabel}>Search games</span>
-            <input
-              type="text"
-              value={gameSearch}
-              onChange={(event) => setGameSearch(event.target.value)}
-              placeholder="Search games"
-              className={styles.page__input}
-            />
-          </label>
+          <div className={styles.page__searchField}>
+            <label htmlFor="game-search" className={styles.page__searchLabel}>
+              Search games
+            </label>
+            <div className="dlc-searchbar dlc-searchbar--full-width">
+              <span className="dlc-searchbar__icon" aria-hidden="true">🔍</span>
+              <input
+                id="game-search"
+                type="search"
+                value={gameSearch}
+                onChange={(event) => setGameSearch(event.target.value)}
+                placeholder="Search games"
+                className="dlc-searchbar__field"
+              />
+            </div>
+          </div>
 
           <ul className={styles.page__games}>
-            {filteredGames.map((g) => (
-              <li key={g.appid} className={styles.page__gameItem}>
-                <div
-                  onClick={() => loadAchievements(g)}
-                  className={`${styles.page__gameButton} ${selectedGame?.appid === g.appid ? styles['page__gameButton--active'] : ''}`}
-                >
-                  {g.img_icon_url && (
-                    <img
-                      src={`https://media.steampowered.com/steamcommunity/public/images/apps/${g.appid}/${g.img_icon_url}.jpg`}
-                      alt=""
-                      width={32}
-                      height={32}
-                      className={styles.page__gameImage}
-                    />
-                  )}
-                  <span className={styles.page__gameLabel}>
-                    <span className={styles.page__gameName}>{g.name}</span>
-                    <small className={styles.page__gameMeta}>{Math.round(g.playtime_forever / 60)} hours played</small>
-                  </span>
+            {filteredGames.map((game) => (
+              <li key={game.appid} className={`dlc-list-item ${selectedGame?.appid === game.appid ? 'dlc-list-item--active' : ''}`} onClick={() => loadAchievements(game)}>
+                {game.img_icon_url && (
+                  <img
+                    src={`https://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.img_icon_url}.jpg`}
+                    alt=""
+                  />
+                )}
+                <div className={"dlc-list-item__content"}>
+                  <span className={"dlc-list-item__content__title"}>{game.name}</span>
+                  <span className={"dlc-list-item__content__subtitle"}>{Math.round(game.playtime_forever / 60)} hours played</span>
                 </div>
               </li>
             ))}
@@ -300,48 +298,51 @@ export default function Home() {
                       </select>
                     </label>
 
-                    <label className={styles.page__searchField}>
-                      <span className={styles.page__searchLabel}>Search</span>
-                      <input
-                        type="text"
-                        value={filters.search}
-                        onChange={(event) =>
-                          setFilters((prev) => ({ ...prev, search: event.target.value }))
-                        }
-                        placeholder="Search achievements"
-                        className={styles.page__input}
-                      />
-                    </label>
+                    <div className={styles.page__filterField}>
+                      <label htmlFor="achievement-search" className={styles.page__filterLabel}>
+                        Search
+                      </label>
+                      <div className="dlc-searchbar dlc-searchbar--full-width">
+                        <span className="dlc-searchbar__icon" aria-hidden="true">🔍</span>
+                        <input
+                          id="achievement-search"
+                          type="search"
+                          value={filters.search}
+                          onChange={(event) =>
+                            setFilters((prev) => ({ ...prev, search: event.target.value }))
+                          }
+                          placeholder="Search achievements"
+                          className="dlc-searchbar__field"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <ul className={styles.page__achievements}>
-                    {filteredAchievements.map((a) => (
-                      <li key={a.apiname} className={styles.page__achievementItem}>
-                      <button
-                        onClick={() => setOpenAchievement(a)}
-                        className={styles.page__achievementButton}
-                      >
-                        {a.icon && <img src={a.icon} alt="" width={32} height={32} />}
-                        <span className={styles.page__achievementContent}>
-                          <span className={styles.page__achievementTitle}>
-                            {a.achieved ? '✅' : '⬜️'} {a.displayName}
-                          </span>
-                          {achievementTags[a.apiname]?.length ? (
-                            <span className={styles.page__achievementTags}>
-                              {achievementTags[a.apiname].map((tag) => (
-                                <span key={tag} className={styles.page__achievementTag}>
-                                  {tag}
+                    {filteredAchievements.map((achievement) => (
+                      <li key={achievement.apiname} className={"dlc-list-item dlc-list-item--wide"} onClick={() => setOpenAchievement(achievement)}>
+                        {achievement.icon && <img src={achievement.icon} alt="" width={32} height={32} />}
+                        <div className={styles.page__achievementContent}>
+                          <div className={"dlc-list-item__content"}>
+                            <span className={"dlc-list-item__content__title"}>
+                              {achievement.achieved ? '✅' : '⬜️'} {achievement.displayName}
+                              {achievementTags[achievement.apiname]?.length ? (
+                                <span className={styles.page__achievementTags}>
+                                  {achievementTags[achievement.apiname].map((tag) => (
+                                    <span key={tag} className={styles.page__achievementTag}>
+                                      {tag}
+                                    </span>
+                                  ))}
                                 </span>
-                              ))}
+                              ) : null}
                             </span>
-                          ) : null}
-                          {a.description && (
-                            <small className={styles.page__achievementMeta}>{a.description}</small>
-                          )}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
+                            {achievement.description && (
+                              <span className={"dlc-list-item__content__subtitle"}>{achievement.description}</span>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
                   </ul>
                 </>
               )
