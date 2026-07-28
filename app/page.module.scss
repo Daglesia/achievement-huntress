@@ -53,7 +53,7 @@ $muted: #8fa8a2;
   list-style: none;
   padding: 0;
   margin: 0;
-  min-width: 280px;
+  min-width: 480px;
 }
 
 .page__gameButton {
@@ -216,4 +216,15 @@ $muted: #8fa8a2;
 
 .page__emptyState {
   color: $muted;
+}
+
+.game_search {
+  padding-bottom: 4px;
+}
+
+.game_list, .achievements_list {
+  border-inline: solid 2px #333333;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }

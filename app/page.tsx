@@ -12,6 +12,8 @@ import {
   type AchievementGradesByApiname,
 } from '../lib/achievementFilters';
 import { signInWithAuthentik } from '../lib/actions';
+import ItemList from '../components/ItemList';
+import Searchbox from '../components/searchbox/Searchbox';
 
 type SteamGame = {
   appid: number;
@@ -201,39 +203,27 @@ export default function Home() {
 
       <div className={styles.page__content}>
         <div style={{ minWidth: 280 }}>
-          <div className={styles.page__searchField}>
-            <label htmlFor="game-search" className={styles.page__searchLabel}>
-              Search games
-            </label>
-            <div className="dlc-searchbar dlc-searchbar--full-width">
-              <span className="dlc-searchbar__icon" aria-hidden="true">🔍</span>
-              <input
-                id="game-search"
-                type="search"
-                value={gameSearch}
-                onChange={(event) => setGameSearch(event.target.value)}
-                placeholder="Search games"
-                className="dlc-searchbar__field"
-              />
-            </div>
-          </div>
-
-          <ul className={styles.page__games}>
-            {filteredGames.map((game) => (
-              <li key={game.appid} className={`dlc-list-item ${selectedGame?.appid === game.appid ? 'dlc-list-item--active' : ''}`} onClick={() => loadAchievements(game)}>
-                {game.img_icon_url && (
-                  <img
-                    src={`https://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.img_icon_url}.jpg`}
-                    alt=""
-                  />
-                )}
-                <div className={"dlc-list-item__content"}>
-                  <span className={"dlc-list-item__content__title"}>{game.name}</span>
-                  <span className={"dlc-list-item__content__subtitle"}>{Math.round(game.playtime_forever / 60)} hours played</span>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <Searchbox
+            id="game-search"
+            value={gameSearch}
+            onChange={setGameSearch}
+            placeholder="Search games"
+            wrapperClassName={styles.game_search}
+            topOfList
+          />
+          <ItemList
+            listClassName={styles.game_list}
+            rows={filteredGames.map((game) => ({
+              key: game.appid,
+              iconSrc: game.img_icon_url
+                ? `https://media.steampowered.com/steamcommunity/public/images/apps/${game.appid}/${game.img_icon_url}.jpg`
+                : undefined,
+              title: game.name,
+              subtitle: `${Math.round(game.playtime_forever / 60)} hours played`,
+              active: selectedGame?.appid === game.appid,
+              onSelect: () => loadAchievements(game),
+            }))}
+          />
         </div>
 
         {selectedGame && (
@@ -298,52 +288,41 @@ export default function Home() {
                       </select>
                     </label>
 
-                    <div className={styles.page__filterField}>
-                      <label htmlFor="achievement-search" className={styles.page__filterLabel}>
-                        Search
-                      </label>
-                      <div className="dlc-searchbar dlc-searchbar--full-width">
-                        <span className="dlc-searchbar__icon" aria-hidden="true">🔍</span>
-                        <input
-                          id="achievement-search"
-                          type="search"
-                          value={filters.search}
-                          onChange={(event) =>
-                            setFilters((prev) => ({ ...prev, search: event.target.value }))
-                          }
-                          placeholder="Search achievements"
-                          className="dlc-searchbar__field"
-                        />
-                      </div>
-                    </div>
+                    <Searchbox
+                      id="achievement-search"
+                      value={filters.search}
+                      onChange={(search) => setFilters((prev) => ({ ...prev, search }))}
+                      placeholder="Search achievements"
+                      wrapperClassName={styles.page__filterField}
+                    />
                   </div>
 
-                  <ul className={styles.page__achievements}>
-                    {filteredAchievements.map((achievement) => (
-                      <li key={achievement.apiname} className={"dlc-list-item dlc-list-item--wide"} onClick={() => setOpenAchievement(achievement)}>
-                        {achievement.icon && <img src={achievement.icon} alt="" width={32} height={32} />}
-                        <div className={styles.page__achievementContent}>
-                          <div className={"dlc-list-item__content"}>
-                            <span className={"dlc-list-item__content__title"}>
-                              {achievement.achieved ? '✅' : '⬜️'} {achievement.displayName}
-                              {achievementTags[achievement.apiname]?.length ? (
-                                <span className={styles.page__achievementTags}>
-                                  {achievementTags[achievement.apiname].map((tag) => (
-                                    <span key={tag} className={styles.page__achievementTag}>
-                                      {tag}
-                                    </span>
-                                  ))}
+                  <ItemList
+                    listClassName={styles.achievements_list}
+                    rows={filteredAchievements.map((achievement) => ({
+                      key: achievement.apiname,
+                      iconSrc: achievement.icon,
+                      iconWidth: 32,
+                      iconHeight: 32,
+                      wide: true,
+                      title: (
+                        <>
+                          {achievement.achieved ? '✅' : '⬜️'} {achievement.displayName}
+                          {achievementTags[achievement.apiname]?.length ? (
+                            <span className={styles.page__achievementTags}>
+                              {achievementTags[achievement.apiname].map((tag) => (
+                                <span key={tag} className={styles.page__achievementTag}>
+                                  {tag}
                                 </span>
-                              ) : null}
+                              ))}
                             </span>
-                            {achievement.description && (
-                              <span className={"dlc-list-item__content__subtitle"}>{achievement.description}</span>
-                            )}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                          ) : null}
+                        </>
+                      ),
+                      subtitle: achievement.description,
+                      onSelect: () => setOpenAchievement(achievement),
+                    }))}
+                  />
                 </>
               )
             )}
