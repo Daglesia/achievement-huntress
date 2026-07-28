@@ -222,6 +222,27 @@ $muted: #8fa8a2;
   padding-bottom: 4px;
 }
 
+.achievement_actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  flex-direction: row;
+}
+
+.achievement_filters {
+  border: 2px solid #333333;
+  height: 43px;
+  flex: 1;
+  margin-bottom: 4px;
+  border-radius: 16px 16px 0 0;
+}
+
+.achievement_search {
+  padding-bottom: 4px;
+  width: 484px;
+}
+
 .game_list, .achievements_list {
   border-inline: solid 2px #333333;
   list-style: none;

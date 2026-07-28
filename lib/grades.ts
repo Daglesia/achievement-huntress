@@ -61,6 +61,8 @@ const GRADE_TAGS = [
   },
 ];
 
+export const TAG_LABELS = GRADE_TAGS.map((tag) => tag.label);
+
 export function getAchievementTags(grades: GradeMap) {
   return GRADE_TAGS.filter((tag) => tag.matches(grades)).map((tag) => tag.label);
 }

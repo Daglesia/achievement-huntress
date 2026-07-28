@@ -1,56 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { filterAchievements, getAvailableGrades } from './achievementFilters';
-import type { GradeMap } from './grades';
+import { filterAchievementsBySearch } from './achievementFilters';
 
-function makeGrades(overrides: Partial<GradeMap> = {}): GradeMap {
-  return {
-    Luck: 'C',
-    Time: 'C',
-    Skill: 'C',
-    Enjoyment: 'C',
-    Consistency: 'C',
-    ...overrides,
-  } as GradeMap;
-}
-
-describe('filterAchievements', () => {
-  it('filters by completion state and grade presence', () => {
+describe('filterAchievementsBySearch', () => {
+  it('keeps achievements whose apiname or display name match the search text', () => {
     const achievements = [
-      { apiname: 'one', achieved: true, displayName: 'One' },
-      { apiname: 'two', achieved: false, displayName: 'Two' },
-      { apiname: 'three', achieved: true, displayName: 'Three' },
+      { apiname: 'WIN_GAME', displayName: 'Win the Game' },
+      { apiname: 'LOSE_GAME', displayName: 'Lose the Game' },
     ];
 
-    const achievementGradesByApiname = {
-      one: makeGrades({ Luck: 'A' }),
-      two: makeGrades({ Time: 'B' }),
-      three: makeGrades({ Skill: 'D' }),
-    };
-
-    expect(
-      filterAchievements(achievements, {
-        status: 'complete',
-        grade: 'A',
-        achievementGradesByApiname,
-      }).map((achievement) => achievement.apiname)
-    ).toEqual(['one']);
-
-    expect(
-      filterAchievements(achievements, {
-        status: 'incomplete',
-        grade: 'B',
-        achievementGradesByApiname,
-      }).map((achievement) => achievement.apiname)
-    ).toEqual(['two']);
+    expect(filterAchievementsBySearch(achievements, 'win').map((a) => a.apiname)).toEqual(['WIN_GAME']);
   });
 
-  it('lists the available grades from the loaded achievement data', () => {
-    const achievementGradesByApiname = {
-      one: makeGrades({ Luck: 'A' }),
-      two: makeGrades({ Time: 'B' }),
-      three: makeGrades({ Skill: 'D' }),
-    };
+  it('is case-insensitive and ignores surrounding whitespace', () => {
+    const achievements = [{ apiname: 'WIN_GAME', displayName: 'Win the Game' }];
 
-    expect(getAvailableGrades(achievementGradesByApiname)).toEqual(['A', 'B', 'D']);
+    expect(filterAchievementsBySearch(achievements, '  WIN  ')).toEqual(achievements);
+  });
+
+  it('returns every achievement when the search is empty', () => {
+    const achievements = [
+      { apiname: 'one', displayName: 'One' },
+      { apiname: 'two', displayName: 'Two' },
+    ];
+
+    expect(filterAchievementsBySearch(achievements, '')).toEqual(achievements);
   });
 });

@@ -5,15 +5,16 @@ import styles from './page.module.scss';
 import AchievementRadarModal from '../components/AchievementRadarModal';
 import { getAchievementTags, normalizeGrades } from '../lib/grades';
 import type { GradeMap } from '../lib/grades';
+import { filterAchievementsBySearch } from '../lib/achievementFilters';
 import {
-  filterAchievements,
-  getAvailableGrades,
-  type AchievementFilterState,
+  filterAchievementsByConditions,
   type AchievementGradesByApiname,
-} from '../lib/achievementFilters';
+  type FilterCondition,
+} from '../lib/achievementFilterConditions';
+import AchievementFilterBuilder from '../components/AchievementFilterBuilder';
 import { signInWithAuthentik } from '../lib/actions';
-import ItemList from '../components/ItemList';
 import Searchbox from '../components/searchbox/Searchbox';
+import ItemList from '../components/ItemList';
 
 type SteamGame = {
   appid: number;
@@ -55,7 +56,8 @@ export default function Home() {
   const [achMessage, setAchMessage] = useState<string | null>(null);
   const [schemaSource, setSchemaSource] = useState<'cache' | 'steam' | null>(null);
   const [openAchievement, setOpenAchievement] = useState<SteamAchievement | null>(null);
-  const [filters, setFilters] = useState<AchievementFilterState>({ status: 'all', grade: 'all', search: '' });
+  const [filterConditions, setFilterConditions] = useState<FilterCondition[]>([]);
+  const [achievementSearch, setAchievementSearch] = useState('');
   const [gameSearch, setGameSearch] = useState('');
 
   useEffect(() => {
@@ -124,7 +126,8 @@ export default function Home() {
     setAchievementGradesByApiname({});
     setAchMessage(null);
     setSchemaSource(null);
-    setFilters({ status: 'all', grade: 'all', search: '' });
+    setFilterConditions([]);
+    setAchievementSearch('');
     const res = await fetch(`/api/achievements?steamid=${steamId}&appid=${game.appid}`);
     const data = (await res.json()) as ApiAchievementsResponse;
     if (data.message) setAchMessage(data.message);
@@ -140,12 +143,11 @@ export default function Home() {
     setAchievements(null);
   }
 
-  const availableGrades = getAvailableGrades(achievementGradesByApiname);
   const filteredAchievements = achievements
-    ? filterAchievements(sortAchievements(achievements), {
-      ...filters,
-      achievementGradesByApiname,
-    })
+    ? filterAchievementsBySearch(
+      filterAchievementsByConditions(sortAchievements(achievements), filterConditions, achievementGradesByApiname),
+      achievementSearch
+    )
     : [];
   const filteredGames = games
     .slice()
@@ -190,6 +192,19 @@ export default function Home() {
       <div className={styles.page__header}>
         <h1 className={styles.page__title}>Your Steam Library</h1>
         <button className={styles.page__logoutButton} onClick={logout}>Log out</button>
+        <div className={styles.page__detailsHeader}>
+          <h2 className={styles.page__detailsTitle}>
+            {openAchievement ? `${selectedGame.name} - ${openAchievement.displayName}` : `${selectedGame?.name} - Achievements`}
+          </h2>
+          {schemaSource && (
+            <span
+              title="Whether achievement names/icons came from the local DB cache or a fresh Steam API call"
+              className={`${styles.page__schemaBadge} ${schemaSource === 'steam' ? styles['page__schemaBadge--steam'] : ''}`}
+            >
+              schema: {schemaSource === 'cache' ? 'from cache' : 'fetched from Steam'}
+            </span>
+          )}
+        </div>
       </div>
       <p className={styles.page__subtitle}>SteamID64: {steamId}</p>
 
@@ -228,19 +243,6 @@ export default function Home() {
 
         {selectedGame && (
           <div className={styles.page__details}>
-            <div className={styles.page__detailsHeader}>
-              <h2 className={styles.page__detailsTitle}>
-                {openAchievement ? `${selectedGame.name} - ${openAchievement.displayName}` : `${selectedGame.name} - Achievements`}
-              </h2>
-              {schemaSource && (
-                <span
-                  title="Whether achievement names/icons came from the local DB cache or a fresh Steam API call"
-                  className={`${styles.page__schemaBadge} ${schemaSource === 'steam' ? styles['page__schemaBadge--steam'] : ''}`}
-                >
-                  schema: {schemaSource === 'cache' ? 'from cache' : 'fetched from Steam'}
-                </span>
-              )}
-            </div>
             {achMessage && <p className={styles.page__message}>{achMessage}</p>}
 
             {openAchievement ? (
@@ -254,47 +256,20 @@ export default function Home() {
               achievements &&
               achievements.length > 0 && (
                 <>
-                  <div className={styles.page__filters}>
-                    <label className={styles.page__filterField}>
-                      <span className={styles.page__filterLabel}>Status</span>
-                      <select
-                        value={filters.status}
-                        onChange={(event) =>
-                          setFilters((prev) => ({ ...prev, status: event.target.value as AchievementFilterState['status'] }))
-                        }
-                        className={styles.page__select}
-                      >
-                        <option value="all">All</option>
-                        <option value="complete">Complete</option>
-                        <option value="incomplete">Incomplete</option>
-                      </select>
-                    </label>
-
-                    <label className={styles.page__filterField}>
-                      <span className={styles.page__filterLabel}>Grade</span>
-                      <select
-                        value={filters.grade}
-                        onChange={(event) =>
-                          setFilters((prev) => ({ ...prev, grade: event.target.value as AchievementFilterState['grade'] }))
-                        }
-                        className={styles.page__select}
-                      >
-                        <option value="all">All grades</option>
-                        {availableGrades.map((grade) => (
-                          <option key={grade} value={grade}>
-                            {grade}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
+                  <div className={styles.achievement_actions}>
                     <Searchbox
                       id="achievement-search"
-                      value={filters.search}
-                      onChange={(search) => setFilters((prev) => ({ ...prev, search }))}
+                      value={achievementSearch}
+                      onChange={(search) => setAchievementSearch(search)}
                       placeholder="Search achievements"
-                      wrapperClassName={styles.page__filterField}
+                      wrapperClassName={styles.achievement_search}
+                      topOfList
                     />
+                    <div className={styles.achievement_filters}>
+                      <div className={styles.page__filters}>
+                        <AchievementFilterBuilder conditions={filterConditions} onChange={setFilterConditions} />
+                      </div>
+                    </div>
                   </div>
 
                   <ItemList

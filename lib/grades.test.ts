@@ -4,6 +4,7 @@ import {
   GRADES,
   DEFAULT_GRADE,
   isValidGrade,
+  TAG_LABELS,
   defaultGrades,
   normalizeGrades,
   gradesToRadarData,
@@ -25,6 +26,10 @@ describe('grades', () => {
     expect(defaultGrades()).toEqual(
       Object.fromEntries(FIELDS.map((field) => [field, DEFAULT_GRADE]))
     );
+  });
+
+  it('exposes the tag labels that achievements can be tagged with', () => {
+    expect(TAG_LABELS).toEqual(['Grindfest', 'RNG Fiesta']);
   });
 
   it('keeps valid grades and replaces invalid ones with the default', () => {
