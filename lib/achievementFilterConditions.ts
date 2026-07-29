@@ -26,6 +26,12 @@ export type FilterCondition = GradeFilterCondition | TagFilterCondition | Achiev
 
 export type AchievementGradesByApiname = Record<string, GradeMap>;
 
+export const RELATIVE_LABEL: Record<FilterRelative, string> = {
+  gt: 'greater than',
+  lt: 'less than',
+  eq: 'equal to',
+};
+
 export function createDefaultCondition(identifier: FilterCondition['identifier']): FilterCondition {
   if (identifier === 'grade') {
     return { identifier: 'grade', field: 'Luck', relative: 'eq', value: DEFAULT_GRADE };
@@ -34,6 +40,16 @@ export function createDefaultCondition(identifier: FilterCondition['identifier']
     return { identifier: 'tag', relative: 'eq', value: TAG_LABELS[0] };
   }
   return { identifier: 'achievement', relative: 'eq', value: true };
+}
+
+export function describeFilterCondition(condition: FilterCondition): string {
+  if (condition.identifier === 'grade') {
+    return `${condition.field} ${RELATIVE_LABEL[condition.relative]} ${condition.value}`;
+  }
+  if (condition.identifier === 'tag') {
+    return `Tag: ${condition.value}`;
+  }
+  return condition.value ? 'Achieved' : 'Locked';
 }
 
 function gradeMatches(actual: Grade, relative: FilterRelative, expected: Grade): boolean {

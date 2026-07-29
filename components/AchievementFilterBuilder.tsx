@@ -1,19 +1,22 @@
+import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { FIELDS, GRADES, TAG_LABELS } from '../lib/grades';
 import type { Grade, GradeField } from '../lib/grades';
-import { createDefaultCondition } from '../lib/achievementFilterConditions';
+import { createDefaultCondition, describeFilterCondition, RELATIVE_LABEL } from '../lib/achievementFilterConditions';
 import type { FilterCondition, FilterRelative } from '../lib/achievementFilterConditions';
+import Tag from './Tag';
 
 type AchievementFilterBuilderProps = {
   conditions: FilterCondition[];
   onChange: (conditions: FilterCondition[]) => void;
-  onSave: () => void;
 };
 
-const RELATIVE_LABEL: Record<FilterRelative, string> = {
-  gt: 'greater than',
-  lt: 'less than',
-  eq: 'equal to',
+const containerStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'row',
+  gap: 8,
+  flexWrap: 'wrap',
+  alignItems: 'center',
 };
 
 const rowStyle: CSSProperties = {
@@ -21,15 +24,6 @@ const rowStyle: CSSProperties = {
   alignItems: 'center',
   gap: 8,
   flexWrap: 'wrap',
-};
-
-const removeButtonStyle: CSSProperties = {
-  border: 'none',
-  background: 'transparent',
-  color: '#8FA8A2',
-  cursor: 'pointer',
-  fontSize: 16,
-  lineHeight: 1,
 };
 
 const addButtonStyle: CSSProperties = {
@@ -49,11 +43,6 @@ const saveButtonStyle: CSSProperties = {
   color: '#12201F',
   fontWeight: 700,
   cursor: 'pointer',
-};
-
-const actionsRowStyle: CSSProperties = {
-  display: 'flex',
-  gap: 8,
 };
 
 function GradeConditionFields({
@@ -150,29 +139,37 @@ function AchievementConditionFields({
   );
 }
 
-export default function AchievementFilterBuilder({ conditions, onChange, onSave }: AchievementFilterBuilderProps) {
-  const isEditing = conditions.length > 0;
-
-  function updateCondition(index: number, updated: FilterCondition) {
-    onChange(conditions.map((condition, i) => (i === index ? updated : condition)));
-  }
+export default function AchievementFilterBuilder({ conditions, onChange }: AchievementFilterBuilderProps) {
+  const [draft, setDraft] = useState<FilterCondition | null>(null);
 
   function removeCondition(index: number) {
     onChange(conditions.filter((_, i) => i !== index));
   }
 
-  function changeIdentifier(index: number, identifier: FilterCondition['identifier']) {
-    updateCondition(index, createDefaultCondition(identifier));
+  function saveDraft() {
+    if (!draft) return;
+    onChange([...conditions, draft]);
+    setDraft(null);
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
+    <div style={containerStyle}>
+      {!draft && (
+        <button type="button" onClick={() => setDraft(createDefaultCondition('grade'))} style={addButtonStyle}>
+          + Add filter
+        </button>
+      )}
+
       {conditions.map((condition, index) => (
-        <div key={index} style={rowStyle}>
+        <Tag key={index} label={describeFilterCondition(condition)} onRemove={() => removeCondition(index)} />
+      ))}
+
+      {draft && (
+        <div style={rowStyle}>
           <select
             aria-label="Filter identifier"
-            value={condition.identifier}
-            onChange={(event) => changeIdentifier(index, event.target.value as FilterCondition['identifier'])}
+            value={draft.identifier}
+            onChange={(event) => setDraft(createDefaultCondition(event.target.value as FilterCondition['identifier']))}
             className="dlc-selectbox"
           >
             <option value="grade">Grade</option>
@@ -180,34 +177,15 @@ export default function AchievementFilterBuilder({ conditions, onChange, onSave 
             <option value="achievement">Achievement</option>
           </select>
 
-          {condition.identifier === 'grade' && (
-            <GradeConditionFields condition={condition} onChange={(updated) => updateCondition(index, updated)} />
-          )}
-          {condition.identifier === 'tag' && (
-            <TagConditionFields condition={condition} onChange={(updated) => updateCondition(index, updated)} />
-          )}
-          {condition.identifier === 'achievement' && (
-            <AchievementConditionFields condition={condition} onChange={(updated) => updateCondition(index, updated)} />
-          )}
+          {draft.identifier === 'grade' && <GradeConditionFields condition={draft} onChange={setDraft} />}
+          {draft.identifier === 'tag' && <TagConditionFields condition={draft} onChange={setDraft} />}
+          {draft.identifier === 'achievement' && <AchievementConditionFields condition={draft} onChange={setDraft} />}
 
-          <button type="button" onClick={() => removeCondition(index)} style={removeButtonStyle} aria-label="Remove filter">
-            ✕
-          </button>
-        </div>
-      ))}
-
-      <div style={actionsRowStyle}>
-        {!isEditing && (
-          <button type="button" onClick={() => onChange([...conditions, createDefaultCondition('grade')])} style={addButtonStyle}>
-            + Add filter
-          </button>
-        )}
-        {isEditing && (
-          <button type="button" onClick={onSave} style={saveButtonStyle}>
+          <button type="button" onClick={saveDraft} style={saveButtonStyle}>
             Save Filter
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

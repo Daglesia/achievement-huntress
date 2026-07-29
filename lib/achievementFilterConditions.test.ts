@@ -18,6 +18,27 @@ function makeGrades(overrides: Partial<GradeMap> = {}): GradeMap {
   };
 }
 
+import { describeFilterCondition } from './achievementFilterConditions';
+
+describe('describeFilterCondition', () => {
+  it('describes a grade condition', () => {
+    expect(describeFilterCondition({ identifier: 'grade', field: 'Luck', relative: 'gt', value: 'B' })).toBe(
+      'Luck greater than B'
+    );
+  });
+
+  it('describes a tag condition', () => {
+    expect(describeFilterCondition({ identifier: 'tag', relative: 'eq', value: 'Grindfest' })).toBe(
+      'Tag: Grindfest'
+    );
+  });
+
+  it('describes an achievement condition', () => {
+    expect(describeFilterCondition({ identifier: 'achievement', relative: 'eq', value: true })).toBe('Achieved');
+    expect(describeFilterCondition({ identifier: 'achievement', relative: 'eq', value: false })).toBe('Locked');
+  });
+});
+
 describe('createDefaultCondition', () => {
   it('creates a default grade condition', () => {
     expect(createDefaultCondition('grade')).toEqual({ identifier: 'grade', field: 'Luck', relative: 'eq', value: 'C' });
