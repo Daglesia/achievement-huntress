@@ -56,7 +56,8 @@ export default function Home() {
   const [achMessage, setAchMessage] = useState<string | null>(null);
   const [schemaSource, setSchemaSource] = useState<'cache' | 'steam' | null>(null);
   const [openAchievement, setOpenAchievement] = useState<SteamAchievement | null>(null);
-  const [filterConditions, setFilterConditions] = useState<FilterCondition[]>([]);
+  const [draftFilterConditions, setDraftFilterConditions] = useState<FilterCondition[]>([]);
+  const [appliedFilterConditions, setAppliedFilterConditions] = useState<FilterCondition[]>([]);
   const [achievementSearch, setAchievementSearch] = useState('');
   const [gameSearch, setGameSearch] = useState('');
 
@@ -126,7 +127,8 @@ export default function Home() {
     setAchievementGradesByApiname({});
     setAchMessage(null);
     setSchemaSource(null);
-    setFilterConditions([]);
+    setDraftFilterConditions([]);
+    setAppliedFilterConditions([]);
     setAchievementSearch('');
     const res = await fetch(`/api/achievements?steamid=${steamId}&appid=${game.appid}`);
     const data = (await res.json()) as ApiAchievementsResponse;
@@ -145,7 +147,7 @@ export default function Home() {
 
   const filteredAchievements = achievements
     ? filterAchievementsBySearch(
-      filterAchievementsByConditions(sortAchievements(achievements), filterConditions, achievementGradesByApiname),
+      filterAchievementsByConditions(sortAchievements(achievements), appliedFilterConditions, achievementGradesByApiname),
       achievementSearch
     )
     : [];
@@ -267,7 +269,11 @@ export default function Home() {
                     />
                     <div className={styles.achievement_filters}>
                       <div className={styles.page__filters}>
-                        <AchievementFilterBuilder conditions={filterConditions} onChange={setFilterConditions} />
+                        <AchievementFilterBuilder
+                          conditions={draftFilterConditions}
+                          onChange={setDraftFilterConditions}
+                          onSave={() => setAppliedFilterConditions(draftFilterConditions)}
+                        />
                       </div>
                     </div>
                   </div>

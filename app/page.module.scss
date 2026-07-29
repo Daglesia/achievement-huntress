@@ -131,11 +131,6 @@ $muted: #8fa8a2;
 }
 
 .page__filters {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-  align-items: flex-end;
 }
 
 .page__filterField,
@@ -236,6 +231,9 @@ $muted: #8fa8a2;
   flex: 1;
   margin-bottom: 4px;
   border-radius: 16px 16px 0 0;
+  place-items: center;
+  display: flex;
+  padding-left: 8px;
 }
 
 .achievement_search {

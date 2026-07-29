@@ -7,12 +7,13 @@ import type { FilterCondition, FilterRelative } from '../lib/achievementFilterCo
 type AchievementFilterBuilderProps = {
   conditions: FilterCondition[];
   onChange: (conditions: FilterCondition[]) => void;
+  onSave: () => void;
 };
 
 const RELATIVE_LABEL: Record<FilterRelative, string> = {
-  gt: '>',
-  lt: '<',
-  eq: '=',
+  gt: 'greater than',
+  lt: 'less than',
+  eq: 'equal to',
 };
 
 const rowStyle: CSSProperties = {
@@ -20,10 +21,6 @@ const rowStyle: CSSProperties = {
   alignItems: 'center',
   gap: 8,
   flexWrap: 'wrap',
-};
-
-const selectStyle: CSSProperties = {
-  padding: '4px 6px',
 };
 
 const removeButtonStyle: CSSProperties = {
@@ -44,6 +41,21 @@ const addButtonStyle: CSSProperties = {
   cursor: 'pointer',
 };
 
+const saveButtonStyle: CSSProperties = {
+  padding: '6px 12px',
+  border: 'none',
+  borderRadius: 4,
+  background: '#E3A83B',
+  color: '#12201F',
+  fontWeight: 700,
+  cursor: 'pointer',
+};
+
+const actionsRowStyle: CSSProperties = {
+  display: 'flex',
+  gap: 8,
+};
+
 function GradeConditionFields({
   condition,
   onChange,
@@ -57,7 +69,7 @@ function GradeConditionFields({
         aria-label="Grade field"
         value={condition.field}
         onChange={(event) => onChange({ ...condition, field: event.target.value as GradeField })}
-        style={selectStyle}
+        className="dlc-selectbox"
       >
         {FIELDS.map((field) => (
           <option key={field} value={field}>
@@ -70,7 +82,7 @@ function GradeConditionFields({
         aria-label="Comparison"
         value={condition.relative}
         onChange={(event) => onChange({ ...condition, relative: event.target.value as FilterRelative })}
-        style={selectStyle}
+        className="dlc-selectbox"
       >
         {(['gt', 'lt', 'eq'] as const).map((relative) => (
           <option key={relative} value={relative}>
@@ -83,7 +95,7 @@ function GradeConditionFields({
         aria-label="Grade value"
         value={condition.value}
         onChange={(event) => onChange({ ...condition, value: event.target.value as Grade })}
-        style={selectStyle}
+        className="dlc-selectbox"
       >
         {GRADES.map((grade) => (
           <option key={grade} value={grade}>
@@ -107,7 +119,7 @@ function TagConditionFields({
       aria-label="Tag value"
       value={condition.value}
       onChange={(event) => onChange({ ...condition, value: event.target.value })}
-      style={selectStyle}
+      className="dlc-selectbox"
     >
       {TAG_LABELS.map((tag) => (
         <option key={tag} value={tag}>
@@ -130,7 +142,7 @@ function AchievementConditionFields({
       aria-label="Achievement value"
       value={String(condition.value)}
       onChange={(event) => onChange({ ...condition, value: event.target.value === 'true' })}
-      style={selectStyle}
+      className="dlc-selectbox"
     >
       <option value="true">Achieved</option>
       <option value="false">Locked</option>
@@ -138,7 +150,9 @@ function AchievementConditionFields({
   );
 }
 
-export default function AchievementFilterBuilder({ conditions, onChange }: AchievementFilterBuilderProps) {
+export default function AchievementFilterBuilder({ conditions, onChange, onSave }: AchievementFilterBuilderProps) {
+  const isEditing = conditions.length > 0;
+
   function updateCondition(index: number, updated: FilterCondition) {
     onChange(conditions.map((condition, i) => (i === index ? updated : condition)));
   }
@@ -152,14 +166,14 @@ export default function AchievementFilterBuilder({ conditions, onChange }: Achie
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
       {conditions.map((condition, index) => (
         <div key={index} style={rowStyle}>
           <select
             aria-label="Filter identifier"
             value={condition.identifier}
             onChange={(event) => changeIdentifier(index, event.target.value as FilterCondition['identifier'])}
-            style={selectStyle}
+            className="dlc-selectbox"
           >
             <option value="grade">Grade</option>
             <option value="tag">Tag</option>
@@ -182,9 +196,18 @@ export default function AchievementFilterBuilder({ conditions, onChange }: Achie
         </div>
       ))}
 
-      <button type="button" onClick={() => onChange([...conditions, createDefaultCondition('grade')])} style={addButtonStyle}>
-        + Add filter
-      </button>
+      <div style={actionsRowStyle}>
+        {!isEditing && (
+          <button type="button" onClick={() => onChange([...conditions, createDefaultCondition('grade')])} style={addButtonStyle}>
+            + Add filter
+          </button>
+        )}
+        {isEditing && (
+          <button type="button" onClick={onSave} style={saveButtonStyle}>
+            Save Filter
+          </button>
+        )}
+      </div>
     </div>
   );
 }
